@@ -1,59 +1,97 @@
-# Wiki IDB — Índice
-
-> Base de conocimiento del taller de Diseño Bioclimático (IDB).
-> Auto-actualizado por el agente LLM.
-
 ---
+title: Índice de la Wiki IDB
+type: index
+updated: 2026-05-02
+---
+
+# Wiki — Taller de Diseño Bioclimático (IDB)
+
+Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere una clase o libreta.
+
+## Reglas y operación
+
+- [[REGLAS_CURSO]] — Comunicación, equipos, evaluación, política de violencia, uso de IA, asistente IA del curso (RAG), asistencia
 
 ## Clases
 
-| # | Título | Estado |
-|---|--------|--------|
-| 001 | [Introducción al Taller IDB](classes/001-IntroduccionTallerIDB.md) | Completa |
-| 002 | [Conceptos Básicos y Balances de Calor](classes/002-ConceptosBasicosBalancesCalor.md) | Completa |
-| 003 | [Mi Primera Simulación](classes/003-MiPrimeraSimulacion.md) | Completa |
-| 004 | [Interpretando Mensajes y Construction Sets](classes/004-InterpretandoMensajesConstructionSets.md) | Completa |
-| 005 | [Primer Análisis con Python](classes/005-AnalisisSimulacionesPython.md) | Completa |
-| 006 | [2 Zonas Térmicas con Ventanas y Aleros](classes/006-DosZonasTermicasVentanasAleros.md) | Completa |
-| 007 | [Caso Base y Aleros](classes/007-CasoBaseAleros.md) | Completa |
-| 008 | [Shading en Ventanas](classes/008-ShadingVentanas.md) | Completa |
-
----
+| # | Página | Temas |
+|---|--------|-------|
+| 001 | [[classes/001-IntroduccionTallerIDB]] | Presentación, objetivo, herramientas, simplificaciones del modelo, instalación de Open Studio |
+| 002 | [[classes/002-ConceptosBasicosBalancesCalor]] | Zona térmica, modelo dependiente del tiempo, módulos de Energy Plus, balance en superficie exterior, EPW/TMY |
+| 003 | [[classes/003-MiPrimeraSimulacion]] | Balance interior, balance de aire, mezclado perfecto, primer modelo en Open Studio (FloorspaceJS, EPW, materiales, condiciones de frontera, Run) |
+| 004 | [[classes/004-InterpretandoMensajesConstructionSets]] | Flujo OSM→IDF, lectura del `.err`, errores vs warnings, Construction Sets, Warm-up Period, Shadow Update, salidas SQL/CSV/HTML, Site/Source factors |
+| 005 | [[classes/005-AnalisisSimulacionesPython]] | RDD y catálogo de variables, T operativa, capa límite, measures de output, paquete `ear_tools`, setup uv, plotting con matplotlib, EDA del EPW, confort adaptativo |
+| 006 | [[classes/006-DosZonasTermicasVentanasAleros]] | Dos zonas con alturas distintas, limpieza de geometría, ventanas (sub-superficies, materiales Glazing/SimpleGlazing, marcos), aleros y parteluces, aleros equivalentes, día más cálido |
+| 007 | [[classes/007-CasoBaseAleros]] | Caso base + variantes (estudio paramétrico), workflow del proyecto final, comparación en Python (función de carga, renombrado custom, plot color/estilo), trayectoria solar, bugs recurrentes |
 
 ## Conceptos
 
-- [Diseño Bioclimático](concepts/Diseno-Bioclimatico.md)
-- [Simulación Energética](concepts/Simulacion-Energetica.md)
-- [Confort Térmico](concepts/Confort-Termico.md)
-- [Envolvente Arquitectónica](concepts/Envolvente-Arquitectonica.md)
-- [Condiciones de Frontera](concepts/Condiciones-de-Frontera.md)
-- [Sistemas Constructivos](concepts/Sistemas-Constructivos.md)
-- [Zona Térmica](concepts/Zona-Termica.md)
-- [Balance de Calor](concepts/Balance-de-Calor.md)
-- [Absorptancia Solar](concepts/Absorptancia-Solar.md)
-- [Factor de Vista](concepts/Factor-de-Vista.md)
-- [TMY — Año Meteorológico Típico](concepts/TMY.md)
-- [Mezclado Perfecto](concepts/Mezclado-Perfecto.md)
-- [Emitancia](concepts/Emitancia.md)
-- [Temperatura Operativa](concepts/Temperatura-Operativa.md)
-- [Masa Térmica](concepts/Masa-Termica.md)
-- [Warm-up Period](concepts/Warm-up-Period.md)
-- [Ventanas](concepts/Ventanas.md)
-- [Superficies de Sombramiento](concepts/Superficies-de-Sombramiento.md)
+- [[concepts/Simulacion-Energetica]]
+- [[concepts/Balance-de-Calor]]
+- [[concepts/Zona-Termica]]
+- [[concepts/Envolvente-Arquitectonica]]
+- [[concepts/Sistemas-Constructivos]]
+- [[concepts/Condiciones-de-Frontera]]
+- [[concepts/Confort-Termico]]
+- [[concepts/Confort-Adaptativo]]
+- [[concepts/Masa-Termica]]
+- [[concepts/Factor-de-Vista]]
+- [[concepts/Absortancia-Solar]]
+- [[concepts/Emisividad]]
+- [[concepts/Radiacion-Onda-Larga]]
+- [[concepts/TMY]]
+- [[concepts/Mezclado-Perfecto]]
+- [[concepts/Espacio-vs-ZonaTermica]]
+- [[concepts/Caricatura-Computacional]]
+- [[concepts/Tipos-Superficie]]
+- [[concepts/Subsuperficie]]
+- [[concepts/Radiacion-Interior-Distribuida]]
+- [[concepts/Warm-up-Period]]
+- [[concepts/Mensajes-EnergyPlus]]
+- [[concepts/Construction-Set]]
+- [[concepts/Measures]]
+- [[concepts/Site-Source-Factor]]
+- [[concepts/Calculo-Sombramientos]]
+- [[concepts/Salida-SQL-EnergyPlus]]
+- [[concepts/RDD-Variables-Disponibles]]
+- [[concepts/Variables-Output-EnergyPlus]]
+- [[concepts/Temperatura-Operativa]]
+- [[concepts/Capa-Limite-Atmosferica]]
+- [[concepts/Ventanas]]
+- [[concepts/Superficies-de-Sombramiento]]
+- [[concepts/Limpiar-Geometria]]
+- [[concepts/Caso-Base]]
+- [[concepts/Estudio-Parametrico]]
+- [[concepts/Trayectoria-Solar]]
 
 ## Herramientas
 
-- [Open Studio](tools/Open-Studio.md)
-- [EnergyPlus](tools/EnergyPlus.md)
-- [Python](tools/Python.md)
+- [[tools/Open-Studio]]
+- [[tools/EnergyPlus]]
+- [[tools/Python]]
+- [[tools/ear-tools]]
 
 ## Procedimientos
 
-- [Instalar Open Studio](procedures/Instalar-Open-Studio.md)
-- [Crear Simulación en Open Studio](procedures/Crear-Simulacion-OpenStudio.md)
-- [Configurar Variables de Salida](procedures/Configurar-Variables-Salida.md)
-- [Analizar Resultados con Python](procedures/Analizar-Resultados-Python.md)
-- [Leer Archivo ERR](procedures/Leer-Archivo-ERR.md)
-- [Agregar Ventanas en Open Studio](procedures/Agregar-Ventanas-OpenStudio.md)
-- [EDA de Resultados de Simulación](procedures/EDA-Resultados-Simulacion.md) ← `001_EDA.ipynb`
-- [EDA de Archivo Climático EPW](procedures/EDA-Archivo-EPW.md) ← `002_EDA_EPW.ipynb`
+- [[procedures/Instalar-Open-Studio]]
+- [[procedures/Estructura-Proyecto-Simulacion]]
+- [[procedures/Descargar-EPW-OneBuilding]]
+- [[procedures/Crear-Primera-Simulacion-OpenStudio]]
+- [[procedures/Leer-Archivo-ERR]]
+- [[procedures/Configurar-Construction-Set]]
+- [[procedures/Debuggear-Simulacion-OpenStudio]]
+- [[procedures/Solicitar-Output-Variables-Measures]]
+- [[procedures/Setup-Entorno-Python-uv]]
+- [[procedures/Analizar-Resultados-Python]]
+- [[procedures/EDA-Archivo-EPW]]
+- [[procedures/Agregar-Ventanas-OpenStudio]]
+- [[procedures/Agregar-Aleros-OpenStudio]]
+- [[procedures/Comparar-Simulaciones-Python]]
+
+## Libretas Jupyter procesadas
+
+_(ninguna aún)_
+
+## Log
+
+Ver [[log]] para el historial cronológico de ingestas y mantenimiento.

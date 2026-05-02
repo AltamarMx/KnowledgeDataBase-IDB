@@ -1,110 +1,124 @@
+---
+title: 001 — Introducción al Taller IDB
+type: clase
+clase: 001
+profesor: Guillermo Barrios del Valle
+fuente: raw/videos/001_Intro_Taller.md
+fecha_ingesta: 2026-05-02
+tags: [clase, introduccion, taller, openstudio, energyplus]
+aliases: [Clase 001, Intro Taller IDB]
+---
+
 # 001 — Introducción al Taller IDB
 
 ## Metadatos
-- **Clase:** 001
-- **Título:** Introducción al Taller IDB
-- **Duración:** ~1h 37min
-- **Profesor:** Guillermo Barrios del Valle
-- **Temas:** presentación del curso, reglas, objetivo, herramientas, simplificaciones, instalación de Open Studio
 
----
+- **Clase:** 001
+- **Título:** Introducción al Taller de Diseño Bioclimático
+- **Profesores:** Guillermo Barrios del Valle (taller) + Miriam (teoría)
+- **Tipo:** Clase introductoria — sin ejercicios, sin física aún
+- **Temas principales:** presentación del curso, objetivo, herramientas, alcance del modelo, simplificaciones, instalación de Open Studio
 
 ## Resumen
 
-Clase introductoria del taller de Diseño Bioclimático. El profesor Guillermo Barrios del Valle establece las reglas del curso, presenta el objetivo principal, explica el ecosistema de software que se usará y las simplificaciones que se harán durante el semestre.
+Primera clase del taller. Define el **objetivo del curso**, presenta las **herramientas** (Open Studio + Energy Plus + Python/Jupyter), explica el **alcance del modelo** y sus simplificaciones (qué SÍ y qué NO se va a simular), recorre el ecosistema de software de simulación energética (incluyendo alternativas de paga como Design Builder y Rhino+LadyBug), y deja como tarea la **instalación de Open Studio**.
 
-### Logística y reglas del curso
+También se establecen las reglas operativas del curso (recogidas aparte en [[REGLAS_CURSO]]).
 
-- Comunicación vía **Google Chat Spaces** (no WhatsApp ni mensajes privados de Classroom)
-- Trabajo por **equipos fijos** — no se aceptan cambios una vez definidos
-- Se deben aprobar tanto la parte teórica (Miriam) como el taller (Guillermo) para pasar la materia
-- Ejercicios en clase por equipos; quien no termine se lo lleva de tarea
-- Clases grabadas en video — se puede faltar pero se debe ver el video
-- Política de **cero tolerancia a la violencia** y uso de lenguaje incluyente
-- No se toma asistencia formal
+## Objetivo del taller
 
-### Objetivo del curso
+> **Evaluar estrategias bioclimáticas cuantificando su impacto en edificaciones usando simulaciones numéricas.**
 
-> Evaluar estrategias bioclimáticas cuantificando el impacto en edificaciones usando simulaciones numéricas.
+El "desempeño térmico" se desglosa en dos ejes:
 
-Los estudiantes podrán cuantificar diferencias (ej. casa blanca vs. azul) en temperatura máxima, promedio y disconfort térmico, para priorizar estrategias con relación desempeño térmico / costo.
+- **Consumo de energía** — iluminación, calefacción, aire acondicionado.
+- **Confort térmico** — el grupo enfatiza este eje porque es el problema invisibilizado de la vivienda social en México: el disconfort no se traduce fácil a emisiones, lo que hace que se pierda del radar en políticas públicas y métricas de sostenibilidad.
 
-### Desempeño térmico — dos dimensiones
+El proyecto final consistirá en una casa en un clima determinado donde el equipo propone estrategias para mejorar su desempeño térmico.
 
-1. **Confort térmico** — el problema "invisible" porque no se traduce directamente en emisiones ni ahorro de energía, pero afecta calidad de vida. Es el **énfasis del curso** y del grupo de investigación (Energías en Edificaciones). Enfoque particular en vivienda social en México.
-2. **Consumo de energía** — relacionado con aire acondicionado, calefacción e iluminación. En México ~20% de edificaciones usan A/C.
+## Conceptos introducidos
 
-### Ecosistema de software
+- [[../concepts/Simulacion-Energetica]] — usar software para resolver el balance de calor dependiente del tiempo a través de la envolvente.
+- [[../concepts/Envolvente-Arquitectonica]] — geometría de la edificación; cada superficie se vincula a un sistema constructivo.
+- [[../concepts/Sistemas-Constructivos]] — secuencia ordenada de materiales con propiedades térmicas y espesor, asignada a una superficie.
+- [[../concepts/Condiciones-de-Frontera]] — tipos: temperatura, flujo de calor (constante, variable o cero ⇒ adiabática), convectiva.
+- [[../concepts/Confort-Termico]] — confort vs. disconfort; por qué se invisibiliza.
+- [[../concepts/Balance-de-Calor]] — qué resuelve Energy Plus a través de la envolvente (introducción; se profundiza en clase 002).
 
-- **[[Open-Studio]]** — interfaz gráfica gratuita y libre que conecta con Energy Plus y Radiance. Genera archivos OSM.
-- **[[EnergyPlus]]** — motor de cálculo (kernel) para simulaciones energéticas. Lee archivos IDF y EPW.
-- **[[Python]]** + Jupyter Notebook — para análisis de datos y resultados de simulaciones.
-- **Design Builder** — alternativa de paga (~1,800 libras/año); no se usa en el curso. Facilita cumplimiento normativo pero propicia malas prácticas si no se entiende la física.
-- **Ladybug Tools** — ecosistema que conecta Rhino con Energy Plus, Radiance, etc. (no se usará en el curso).
-- **Radiance** — programa para simulación de iluminación natural (no se cubre en el curso).
+### Archivos clave de Energy Plus (presentados)
 
-### Documentación de Energy Plus
+- **IDF (Input Data File)** — archivo de texto plano que describe la edificación, compuesto de **objetos**.
+- **EPW (Energy Plus Weather)** — archivo de clima con ubicación geográfica + datos horarios (T_amb, radiación global/directa/difusa, HR, viento, lluvia, presión atmosférica).
+- **OSM (Open Studio Model)** — formato propio de Open Studio, también texto plano.
 
-| Documento | Páginas | Contenido |
-|-----------|---------|-----------|
-| Input/Output Reference | ~2,952 | Entradas, salidas, opciones y objetos de Energy Plus |
-| Engineering Reference | ~1,800 | Ecuaciones, correlaciones y métodos numéricos |
-| Getting Started | — | Introducción general |
-| Auxiliary Programs | — | Descripción de archivos de clima, etc. |
+### Texto plano (aclaración didáctica)
 
-No hay que memorizarla, sino **aprender a consultarla**.
+- Es: `.idf`, `.epw`, `.osm`, `.csv`, `.tex`, `.md`, `.py`.
+- No es: `.docx`, `.xlsx` (codificados — abrir con editor de texto muestra basura).
+- El IDF es texto plano; Energy Plus y Open Studio lo leen y lo presentan en interfaces.
 
-### Archivos clave
+## Simplificaciones del modelo del curso
 
-- **IDF** (Input Data File) — archivo de texto plano que describe la edificación: materiales, geometría, sistemas constructivos, condiciones de frontera. Es lo que lee Energy Plus.
-- **EPW** (Energy Plus Weather) — archivo de clima con datos horarios: temperatura ambiente, radiación (global, directa, difusa), humedad relativa, lluvia, velocidad y dirección de viento, presión atmosférica, ubicación geográfica (latitud, longitud, elevación).
-- **OSM** (Open Studio Model) — formato nativo de Open Studio.
+Suposiciones que limitan el realismo pero permiten enfocarse en lo bioclimático. **Todas se levantan en la siguiente materia (Energía en Edificaciones).**
 
-Para simular se necesitan dos archivos: el IDF (la casa) y el EPW (el clima). Cambiar el EPW = cambiar la ubicación.
+| # | Simplificación | Razón |
+|---|----------------|-------|
+| 1 | **Sin ventilación natural** (zonas herméticas) | Modelar ventilación cruzada en Energy Plus es complejo; Open Studio ni siquiera la expone porque no es prioridad en el paradigma de construcción de EE.UU. |
+| 2 | **Sin cargas térmicas internas** (personas ~70-100 W, equipos, iluminación) | Es laborioso y aleja del objetivo |
+| 3 | **Geometrías simples** (cubos con ventanas) | Evita que el curso se vuelva clase de dibujo; Open Studio nativo no permite geometrías complejas |
+| 4 | **Piso adiabático** (flujo de calor cero) | Determinar la temperatura del suelo (ground) es todo un arte que merece su propio tema |
 
-### Simplificaciones del curso
+### Implicación práctica
 
-Estas simplificaciones se superan en la materia **Energía en Edificaciones** (siguiente semestre):
+Los resultados absolutos **no son trasladables a una edificación real**, pero el **orden relativo entre estrategias se conserva**: se puede usar como guía de priorización. Ejemplo: comparar casa pintada de blanco vs. azul → la cuantificación absoluta variará en condiciones reales, pero el orden (cuál es mejor) suele mantenerse.
 
-| Simplificación | Razón |
-|---------------|-------|
-| **Sin ventilación natural** | La ventilación cruzada es compleja y no está disponible desde Open Studio (paradigma de EE.UU. vs. México) |
-| **Sin cargas térmicas internas** | No se modelan personas (~70-100 W/persona) ni equipos eléctricos |
-| **Geometrías simples** | Cubos con ventanas; sin techos inclinados ni formas complejas. El editor de Open Studio lo limita. |
-| **Piso adiabático** | La temperatura del suelo (ground) depende de material, humedad, clima — es compleja de modelar |
+> **Advertencia explícita del profesor:** estos resultados sirven para entender, no para tomar decisiones de eficiencia energética en una empresa real ni diseñar edificaciones reales sin saber hacer simulaciones completas.
 
-El resultado no representa una edificación real, pero el **orden de efectividad** de las estrategias bioclimáticas se conserva.
+## Herramientas presentadas
 
-### Sobre el uso de IA
+### Que se usarán en el curso
 
-- El profesor es pro-IA (usa Claude, plan Max $100/mes)
-- Recomienda que los estudiantes **no la usen** en esta etapa de aprendizaje
-- IA es mala para simulaciones en Energy Plus (alucina con objetos inexistentes)
-- Es buena para programar y análisis de datos
-- No se penaliza su uso, pero hay que desarrollar pensamiento crítico primero
+- [[../tools/Open-Studio]] **versión 1.11.0 (release candidate)** — interfaz gráfica; trae Energy Plus integrado. **Acuerdo:** todo el grupo usa la misma versión (las versiones nuevas pueden abrir archivos viejos, no al revés).
+- [[../tools/EnergyPlus]] — motor de cálculo. No se instala por separado, viene dentro de Open Studio. Documentación clave: **Input Output Reference** (~2952 pp.) y **Engineering Reference**.
+- [[../tools/Python]] + Jupyter Notebook — para análisis y visualización de resultados.
 
-### Tarea
+### Mencionadas pero no se usan
 
-- Instalar **Open Studio versión 1.11.0** desde OpenStudio Coalition > GitHub releases
-- Todos deben usar la misma versión para compatibilidad de archivos
-- Disponible para Windows, Mac (>= macOS 13) y Ubuntu (22/24)
+- **Design Builder** — software de paga (~£1800/año), enfocado a cumplir normativas, automatiza reportes. Crítica del profesor: propicia malas prácticas porque oculta supuestos (condiciones de frontera mal puestas pasan desapercibidas).
+- **Rhino + LadyBug/Honeybee** — simulaciones paramétricas, muy usado en consultoría internacional; Rhino es de paga.
+- **SketchUp** — antes gratis, ahora $1600 MXN/año estudiantes; útil para geometrías complejas. El profesor lo usa con licencia personal pero no exige que los estudiantes paguen.
+- **IES (ISP)**, **TRNSYS** — alternativas comerciales europea/estadounidense.
+- **Radiance** — iluminación natural (fuera del alcance del curso).
+- **Climate Consultant** — mencionado al pasar.
 
----
+### Filosofía de software
 
-## Conceptos clave
+- Solo **software libre**: filosofía + razón pragmática.
+- En el instituto **han corrido a personas por usar software pirata** — en máquinas institucionales son rastreables.
+- La curva de aprendizaje del software libre es más dura, pero permite entender los fundamentos en lugar de "dar clic sin saber".
 
-- **[[Diseno-Bioclimatico]]** — diseño de edificaciones que aprovecha las condiciones climáticas para confort térmico
-- **[[Simulacion-Energetica]]** — modelado numérico del comportamiento térmico y energético de edificaciones
-- **[[Confort-Termico]]** — condición de bienestar respecto a la temperatura interior; problema "invisible" en la literatura
-- **[[Envolvente-Arquitectonica]]** — conjunto de superficies que delimitan la edificación (muros, techo, piso, ventanas)
-- **[[Condiciones-de-Frontera]]** — especificaciones matemáticas en los límites del modelo (adiabática, temperatura, flujo de calor)
-- **[[Sistemas-Constructivos]]** — combinación ordenada de materiales que conforman una superficie (ej. concreto + tabique + concreto)
+## Tarea de la clase
 
-## Herramientas mencionadas
+Instalar Open Studio 1.11.0. Ver [[../procedures/Instalar-Open-Studio]] para el procedimiento detallado.
 
-[[Open-Studio]] · [[EnergyPlus]] · [[Python]] · Design Builder · Ladybug Tools · Rhino · SketchUp · Radiance
+## Recursos mencionados
+
+- Documentación Energy Plus (PDFs):
+  - **Input Output Reference** — entradas, opciones, salidas (uso principal)
+  - **Engineering Reference** — ecuaciones, correlaciones, métodos numéricos (uso principal)
+  - **Getting Started** — visión general
+  - **Auxiliary Programs** — descripción del archivo de clima
+- Cursos previos del profesor:
+  - **"De Cero a Infinito"** — Educación Continua UNAM, gratis para estudiantes del instituto. Si el acceso se cerró, mandar correo a Educación Continua para extender; si no responden, escribir al profesor.
+  - **Especialización en Coursera** (3 cursos): Python → análisis de datos → buenas prácticas de developer en ciencia de datos. Videos de 5-7 min, ~65-70 videos por curso, libretas de autoevaluación.
+- **Hackatón de visualización de datos** (extra al curso): premio 3 computadoras al 1° y 2° lugar.
+
+## Reglas del curso
+
+Las reglas de operación (comunicación, equipos, evaluación, IA, asistencia, política de violencia) están en archivo aparte: [[REGLAS_CURSO]].
 
 ## Conexiones
 
-- **Siguiente:** [[002-ConceptosBasicosBalancesCalor]] — Conceptos básicos y balances de calor
-- **Materia relacionada:** Energía en Edificaciones (siguiente semestre, cubre las simplificaciones)
+- → **Siguiente clase:** [[002-ConceptosBasicosBalancesCalor]] — empieza la física (balances de calor, transferencia de calor)
+- → **Materia siguiente del plan de estudios:** Energía en Edificaciones — levanta las simplificaciones (ventilación natural, cargas térmicas, geometrías complejas, ventilación cruzada)
+- → Reglas: [[REGLAS_CURSO]]

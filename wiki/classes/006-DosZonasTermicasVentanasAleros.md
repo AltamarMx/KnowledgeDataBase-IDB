@@ -1,236 +1,338 @@
-# 006 — 2 Zonas Térmicas con Ventanas y Aleros
+---
+title: 006 — Dos Zonas Térmicas con Ventanas y Aleros
+type: clase
+clase: 006
+profesor: Guillermo Barrios del Valle
+fuente: raw/videos/006_DosZonasTermicasVentanasAleros.md
+fecha_ingesta: 2026-05-02
+tags: [clase, openstudio, ventanas, aleros, sombreamiento, dos-zonas, geometria, dia-mas-calido]
+aliases: [Clase 006]
+---
+
+# 006 — Dos Zonas Térmicas con Ventanas y Aleros
 
 ## Metadatos
-- **Clase:** 006
-- **Título:** 2 Zonas Térmicas con Ventanas y Aleros
-- **Profesor:** Guillermo Barrios del Valle
-- **Temas:** geometría con diferentes alturas, ventanas como sub-superficies, materiales de vidrio, overhangs y fins (projection factors), aleros y celosías, superficies de sombramiento, alero equivalente, flujo de trabajo incremental, análisis rápido con Python
 
----
+- **Clase:** 006
+- **Profesor:** Guillermo Barrios del Valle
+- **Fuente:** `raw/videos/006_DosZonasTermicasVentanasAleros.md`
+- **Tipo:** Clase práctica recreativa — el profesor reconstruye desde cero un modelo de dos zonas con ventanas y aleros
 
 ## Resumen
 
-Clase práctica donde se construye desde cero una simulación con **dos zonas térmicas de diferentes alturas**, se agregan **ventanas** (sub-superficies), se introducen **dispositivos de protección solar** (overhangs y fins) y se demuestra que los aleros **solo bloquean radiaci��n, no participan en transferencia de calor ni obstruyen viento**. Se cierra con un análisis rápido en Python para identificar el día más cálido.
+Clase larga (≈2 horas) donde el profesor **rehace desde cero** un modelo con dos zonas térmicas, materiales, Construction Set, ventanas y aleros, debugea en vivo y cierra con análisis Python. Mucho contenido técnico nuevo:
 
----
+- **Frontera de superficie automática** y **limpieza de geometría** (cuándo FloorspaceJS corta solo, cuándo no).
+- **Alturas distintas por Space** (Stories tienen default heredable; cada Space puede sobreescribir).
+- **Ventanas como sub-superficies**: parámetros (WWR, sill height, height/width), materiales (Simple Glazing vs Glazing detallado), vidrio mexicano típico (3/6/9 mm flotado), framing (marcos), historia del IER de cubículos low-E mal aplicados.
+- **Aleros y parteluces**: Projection Factor, qué SÍ y qué NO hacen físicamente, **limitación crítica de Open Studio** (alero del mismo ancho que la ventana) y workaround editando el OSM.
+- **Aleros equivalentes (celosías)** y el paper del grupo IER sobre la cafetería.
+- **Día más cálido**: por qué hay que explicitar el **criterio**.
+- Recapitulación del análisis Python (`ear_tools`, recorte temporal con `dateutil + Timedelta`).
 
-## 1. Geometría con diferentes alturas
+No hay tarea nueva — quien no haya entregado la anterior, debe entregarla.
 
-### Stories vs Spaces en FloorSpaceJS
+## Recap clase 003-004 — frontera de superficie
 
-- Cada **Story** (piso) tiene una altura floor-to-ceiling por defecto (2.43m)
-- Si se cambia la altura en el **Story**, todos los espacios de ese piso heredan la nueva altura
-- Si se cambia la altura en un **Space** individual, solo ese espacio se modifica
-- Para tener dos zonas con alturas diferentes en el mismo piso → definir la altura en cada Space, no en el Story
+> "La condición de frontera verde — de superficie o de interzona — a veces no se hace sola y hay que forzarla. Para que se haga sola tienen que pasar dos cosas: las superficies se traslapan, y son del mismo tamaño."
 
-### Intersección automática de superficies
+Cuando dos espacios se unen físicamente y sus muros coinciden:
 
-- Cuando dos espacios comparten una pared en FloorSpaceJS, la herramienta **corta automáticamente** las superficies y asigna condición de frontera **Surface/Interzone**
-- Si las superficies no son del mismo tamaño, la intersección no se genera automáticamente
-- Si un espacio tiene doble altura, la pared compartida se corta: parte inferior con condición Surface, parte superior queda como Outdoor
-- **Limpiar geometría:** en modelos complejos (BIM), las intersecciones automáticas fallan y hay que corregir manualmente — en este curso se evitan geometrías complejas para no caer en eso
+- FloorspaceJS convierte automáticamente Outdoors → Surface (verde).
+- El muro compartido es **uno solo**, no doble (las dos superficies "se vuelven una" en el modelo).
+- El calor que sale por una zona entra por la otra.
 
-### Principio de la superficie compartida
+Cuando los muros se traslapan **parcialmente** (tamaños distintos), FloorspaceJS no convierte la condición → hay que **limpiar la geometría**. Detalle en [[../concepts/Limpiar-Geometria]].
 
-- La condición Surface/Interzone significa que **es un solo muro**, no doble
-- Dos superficies empalmadas = una superficie física
-- El flujo de calor que sale de una zona entra a la otra
+> "En SketchUp hay una herramienta que hace una intersección — proyecta una superficie sobre la otra y la corta. Todo eso lo hace FloorspaceJS de manera automática. **A veces.**"
 
----
+## Stories y Spaces con alturas distintas
 
-## 2. Flujo de trabajo incremental
+> "Si yo cambio la altura en el Space, solo ese Space va a tener esa altura. Si la cambio en el Story, todo lo que esté en ese nivel va a tener esa altura."
 
-**Principio fundamental:** hacer cambios pequeños, correr la simulación después de cada paso y verificar que funciona antes de seguir.
+El profesor demuestra creando dos Spaces:
 
-1. Crear geometría → verificar condiciones de frontera → guardar como v001
-2. Agregar materiales, construcciones, Construction Set → correr simulación → verificar ERR → guardar como v002
-3. Agregar ventanas → correr → verificar → guardar como v003
-4. Agregar overhangs/fins → correr → verificar → guardar como v004
+- Space `este`: 2.5 m de altura.
+- Space `oeste`: 5 m de altura (doble).
 
-**Raz��n:** si acumulas muchos cambios sin correr, cuando aparece un error no sabrás cuál paso lo causó.
+Resultado al hacer Merge: FloorspaceJS detecta que el techo del cubo bajo se traslapa con la **parte inferior** del muro del cubo alto, y **corta automáticamente** ese muro alto en dos sub-superficies:
 
-Para el proyecto final: terminar completamente el **caso de referencia** (incluyendo variables de salida) antes de crear variantes. Así solo se cambia un parámetro por variante sin duplicar trabajo.
+- La sub-superficie de la mitad inferior queda con condición **Surface** (verde) compartida con el techo del cubo bajo.
+- La sub-superficie superior queda como **Outdoors** (azul).
 
----
+Caso típico de geometría auto-limpiada por FloorspaceJS — sería **mucho más complicado en SketchUp** (manual con la herramienta Surface Intersect).
 
-## 3. Materiales: relación densidad-conductividad
+## Materiales típicos del taller — relación densidad ↔ conductividad
 
-- Materiales más densos tienen **mayor conductividad** — es una propiedad molecular
-- Si una fuente reporta alta densidad con baja conductividad (o viceversa), es sospechosa
+> "Entre más denso sea un material, normalmente su conductividad es mayor."
 
-| Material | Densidad (kg/m³) | Conductividad (W/m·K) |
-|----------|-------------------|------------------------|
-| EPS (poliestireno expandido) | ~45 | ~0.035 |
-| Tabique rojo | ~1400 | ~0.7 |
-| Concreto alta densidad | ~2400 | ~2.0 |
+Materiales de la demo:
 
-- **Pinturas e impermeabilizantes** no se simulan como capas — son < 1-2 mm y su efecto térmico es despreciable. Lo que importa es el **color** (absorptancia solar)
+| Material | k (W/m·K) | ρ (kg/m³) | cₚ (J/kg·K) | α |
+|----------|-----------|-----------|-------------|---|
+| Tabique rojo 14 cm | 0.7 | 1400 | 1000 | 0.7 |
+| Concreto alta densidad 15 cm (blanco) | 2.0 | 2400 | 1000 | 0.3 |
+| EPS (poliestireno expandido) | 0.035 | 45 | — | — |
 
----
+Comparación: el EPS es ~50× menos denso y ~60× menos conductivo que el concreto. La relación ρ↔k no es lineal pero sí **monotónica**.
 
-## 4. Ventanas
+> "Si tienen una fuente y ven que las densidades y conductividades no corresponden — revisen su fuente. Hoy en día muchas vienen del internet o de Google AI y pueden tener errores."
 
-### Agregar ventanas en FloorSpaceJS
+Para validar materiales: chequear **consistencia ρ-k**.
 
-- En el editor: **Component** → seleccionar tipo Window
-- Hacer clic sobre un muro para colocar la ventana
-- Propiedades configurables:
+### Pinturas e impermeabilizantes
 
-| Propiedad | Descripción | Default |
-|-----------|-------------|---------|
-| **Window to Wall Ratio** | Fracción del área de ventana respecto al muro | — |
-| **Height** | Altura de la ventana | — |
-| **Width** | Ancho de la ventana | — |
-| **Sill Height** | Altura de antepecho (del piso al borde inferior de la ventana) | 0.91 m |
+- Espesores < 1 mm.
+- Efecto térmico por conducción **despreciable**.
+- Lo que importa es el **color** (absortancia solar).
+- En el modelo: no se agregan como capa; se asigna la absortancia a la superficie expuesta.
 
-- Todas las ventanas creadas con el mismo componente son idénticas — para diferentes tamaños, crear nuevos componentes
-- En la realidad, se simplifica: múltiples ventanas de una fachada → una sola ventana de **área equivalente** (el marco se ignora como simplificación, aunque ocupa ~10% del área)
+## Ventanas — sub-superficies
 
-### Ventanas como sub-superficies
+Concepto y parámetros completos en [[../concepts/Ventanas]]. Procedimiento práctico en [[../procedures/Agregar-Ventanas-OpenStudio]].
 
-- Las ventanas son **sub-superficies** — necesitan una superficie padre (muro)
-- No pueden ocupar el 100% del muro
-- Aparecen como transparentes en el 3D View
-- Se listan en la pestaña **Sub Surfaces** (no en Surfaces)
-- Necesitan su propio sistema constructivo (material de vidrio)
+### Parámetros del componente window en FloorspaceJS
 
-### Materiales de vidrio
-
-Dos opciones en Open Studio:
-
-| Tipo | Uso | Complejidad |
-|------|-----|-------------|
-| **Glazing Window Material** | Vidrio simple, una capa | Requiere: espesor, transmitancia solar/visible, reflectancia, transmitancia IR, conductividad |
-| **Simple Glazing Window Material** | Ventana compleja simplificada | Reduce una ventana multicapa (doble vidrio + argón + low-E) a pocos parámetros |
-
-**Recomendación para el curso:** usar el vidrio **Clear 3mm** que ya viene incluido en la librería de EnergyPlus. En México las ventanas estándar son de 3, 6 y 9 mm de vidrio flotado.
-
-**Propiedades espectrales:** se puede definir comportamiento por intervalo de longitud de onda (para materiales experimentales) o dar promedios espectrales.
-
-### Marcos de ventana (framing)
-
-- En EnergyPlus se puede definir el material del marco
-- **Aluminio** (conductividad ~1.5 W/m·K) crea un **puente térmico** — muy malo con A/C
-- **PVC** (conductividad ~0.7 W/m·K) es mejor opción térmica
-- En el curso no se modelan marcos, pero es importante saber que existen y afectan
-
-### Normativa mexicana
-
-- NOM-008: ventanas máximo ~20% del área de fachada en vivienda, ~25% en comerciales
-
----
-
-## 5. Overhangs y fins (protecciones solares)
-
-### Definición desde FloorSpaceJS
-
-En el componente de ventana se puede configurar:
-
-| Propiedad | Descripción |
+| Parámetro | Significado |
 |-----------|-------------|
-| **Overhang Projection Factor** | Superficie horizontal arriba de la ventana. Factor = profundidad del alero / altura de la ventana |
-| **Fin Projection Factor** | Superficies verticales a los lados. Factor = profundidad / ancho de la ventana |
+| **Window-to-Wall Ratio (WWR)** | Fracción del muro padre |
+| **Height / Width / Sill Height** | Dimensiones absolutas |
+| **Window Type** | `FixedWindow` (default), `OperableWindow`, etc. |
+| **Overhang Projection Factor** | Genera alero arriba |
+| **Fin Projection Factor** | Genera parteluces a los lados |
 
-Con factor = 1, el alero tiene la misma profundidad que la altura de la ventana.
+> En NOM-008 mexicana: **20% WWR máximo en vivienda**, **25% en comerciales**. Estas máximos buscan limitar carga térmica.
 
-### Limitaciones de la interfaz
+### Restricción 100%
 
-- El overhang se genera **exactamente del ancho de la ventana** — no se puede hacer más ancho desde Open Studio
-- **Hack:** abrir el archivo .osm con un editor de texto, buscar la superficie del overhang (ej. "Face 18"), modificar las coordenadas de los 4 puntos para alargar
-- También se puede pedir a un LLM que modifique las coordenadas
+Una ventana **no puede ocupar el 100%** del muro padre. Caso típico: cafetería abierta — modelar muro virtual con ventana al 95-98%.
 
-### Problema de diseño
+### Materiales de ventana — dos opciones
 
-- Un alero del mismo ancho que la ventana solo protege bien cuando el sol está perpendicular
-- Cuando el sol viene de un ángulo lateral (trayectoria solar aparente), la sombra se desplaza y el alero pierde efectividad
-- **Solución:** combinar overhang horizontal + fin vertical
-- Los **ángulos importantes** son: el ángulo desde el borde inferior de la ventana hasta el extremo del alero (define cuándo el sol entra), y el ��ngulo horizontal hacia las esquinas del alero
+| Opción | Caracterización |
+|--------|-----------------|
+| **Glazing Window Material** | Capa por capa (vidrio + gas + low-E + ...) — fiel pero pide muchos parámetros |
+| **Simple Glazing System** | 3 parámetros: U-factor, SHGC, Visible Transmittance — recomendado para el taller |
 
----
+Vidrio mexicano típico: **flotado de 3/6/9 mm**, transmitancia ~0.88, k ~1 W/m·K. Open Studio trae precargado un material `glazing 3mm`.
 
-## 6. Superficies de sombramiento (aleros)
+### Marcos (framing) — el puente térmico ignorado
 
-### Qué hacen
+> "El marco ocupa un 10-20% del área. Y el área efectiva de vidrio no es la misma que si mido los marcos de aluminio."
 
-- **Bloquean radiación solar directa y difusa** — proyectan sombras
-- Pueden tener **reflectancia/absorptancia** asignada
-- Pueden ser **semi-transparentes** (celosías)
+Conductividades de marcos:
 
-### Qué NO hacen
+| Material | k (W/m·K) |
+|----------|-----------|
+| Vidrio | ~1.0 |
+| Aluminio | ~150 (sin ruptura) / ~1.5 (con ruptura) |
+| PVC | ~0.17 |
 
-- **No participan en la transferencia de calor** — no tienen temperatura, no conducen calor
-- **No obstruyen el viento** — EnergyPlus no resuelve mecánica de fluidos computacional (CFD)
-- La conducción desde un alero caliente hacia el muro es despreciable (proceso unidimensional, el calor no "dobla la esquina")
-- Sí emiten radiación de onda larga hacia las superficies cercanas (esto sí se toma en cuenta)
+> "En todo el instituto donde hay aire acondicionado, tenemos ventanas de aluminio. Genera puente térmico — terrible si tenemos AC. PVC sería mejor."
 
-### Implicación para muros exteriores
+En el taller los marcos se **ignoran** (el área de marco se cuenta como cristal). Caricatura aceptable para evaluar estrategias.
 
-- Un muro dibujado como superficie de sombramiento solo bloqueará radiación, no viento
-- Para simular el efecto del viento bloqueado → hay que modificar **coeficientes de descarga** de las ventanas
+### Caso histórico — cubículos plataforma solar IER
 
----
+Hace años se instalaron **ventanas con película low-E** en los cubículos de la plataforma solar pensando que reducirían carga térmica. Resultado: **se volvieron infernales** porque la película reflejaba el IR pero **absorbía** el visible — el vidrio se calentaba y radiaba en ambas direcciones (incluyendo hacia adentro).
 
-## 7. Celosías y alero equivalente
+Lección: las ventanas se diseñan por **conjunto de propiedades espectrales**, no por una sola. Aplicable hoy a **paneles fotovoltaicos translúcidos** que se proponen para fachadas — investigación pendiente del grupo (Aaron, Matthew, Fabi).
 
-### Celosías (louvers)
+## Aleros y parteluces — superficies de sombramiento
 
-Combinación de superficies horizontales y verticales repetidas, espaciadas uniformemente:
+Concepto completo en [[../concepts/Superficies-de-Sombramiento]]. Procedimiento en [[../procedures/Agregar-Aleros-OpenStudio]].
 
-- **Ventaja:** bloquean radiación directa muy efectivamente mientras permiten ventilación
-- Muy usadas en climas cálidos (costa mexicana)
-- El ángulo de protección depende del espaciamiento y la profundidad de cada elemento
+### Projection Factor
 
-### Concepto de alero equivalente
+$$
+PF = \frac{\text{longitud horizontal del alero}}{\text{altura de la ventana}}
+$$
 
-- Un conjunto de celosías pequeñas con un ángulo de protección determinado equivale a un **alero gigante** con el mismo ángulo
-- Entre más fina la rejilla (menor espaciamiento) → mayor ángulo → mayor alero equivalente
-- En la simulación se modela el **alero equivalente** (una superficie grande) en vez de cada celosía individual
-- Ejemplo real: cafetería universitaria con celosías tipo serpentín → alero equivalente enorme
+Análogo para `Fin Projection Factor` (parteluces verticales).
 
-### Calibración con ventilación natural
+### Qué SÍ / NO hacen los aleros
 
-- El alero equivalente no absorbe velocidad del viento
-- Para calibrar: medir velocidad de viento real con anemómetros 3D y ajustar coeficientes de descarga en la simulación
-- Este es uno de los grandes retos de la simulación en México: las edificaciones dependen de ventilación natural, pero los modelos son limitados para esto
+| Mecanismo | E+ |
+|-----------|-----|
+| Bloquear radiación solar directa y difusa | **Sí** |
+| Tener temperatura propia, conducir calor | **No** — los aleros no participan en transferencia de calor |
+| Obstruir el viento | **No** — E+ no resuelve mecánica de fluidos externa |
+| Reflejar radiación según su material | **Sí** |
 
----
+> "Los aleros son superficies opacas que sí tienen reflectancia. Pero la absortancia me gusta pensarla más como reflectancia, porque la absortancia gana temperatura, y este no — solo refleja."
 
-## 8. Análisis rápido con Python
+### Limitación crítica de Open Studio
 
-Demostración de un análisis exploratorio en ~10 minutos:
+> El alero generado por FloorspaceJS tiene **el mismo ancho que la ventana**. Eso es **terrible** porque el sol oblicuo (mañanas, tardes, fachadas E/W) proyecta sombras laterales que caen fuera del alero.
 
-1. Crear ambiente con `uv init` + `uv add pandas matplotlib jupyter notebook` + `uv add git+<ear_tools>`
-2. `uv run jupyter notebook`
-3. Cargar datos: `read_sql(f, alias=True)`
-4. Identificar día más cálido: `To.resample('D').mean().idxmax()`
-5. Graficar ventana temporal de ~7 días alrededor del día más cálido
+#### Ángulos de diseño
 
-**Concepto clave:** el `datetime` como índice es fundamental para el manejo eficiente de series temporales. Convertir fechas a datetime y usarlas como índice del DataFrame es un "parteaguas" en el análisis de datos.
+- **Vertical**: ángulo desde la base de la ventana al borde del alero.
+- **Horizontal/azimut**: ángulo desde el borde de la ventana al borde lateral del alero.
 
----
+Un alero efectivo se extiende **lateralmente más allá del ancho de la ventana**. Open Studio no lo permite desde GUI.
 
-## Conceptos clave
+### Workaround — editar el OSM
 
-- **[[Zona-Termica]]** — diferentes alturas, superficie compartida como muro único
-- **[[Condiciones-de-Frontera]]** — intersección automática, Surface/Interzone con alturas diferentes
-- **[[Sistemas-Constructivos]]** — relación densidad-conductividad, pinturas despreciables como capa
-- **Ventanas** — sub-superficies, materiales de vidrio, marcos como puentes térmicos
-- **Superficies de sombramiento** — solo radiación, sin calor ni viento
-- **Celosías y alero equivalente** — protección solar efectiva que permite ventilación
+El OSM es texto plano. Procedimiento (ver [[../procedures/Agregar-Aleros-OpenStudio]]):
 
-Conceptos previos referenciados: [[Balance-de-Calor]], [[Masa-Termica]], [[Absorptancia-Solar]]
+1. Identificar el `Face N` del alero en el preview 3D.
+2. Cerrar Open Studio.
+3. Abrir el OSM con un editor de texto, buscar `Face N`.
+4. Modificar las coordenadas de los 4 vértices (mover de a pares para mantener coplanaridad).
+5. Recargar el OSM y verificar visualmente.
 
-## Herramientas mencionadas
+> El profesor también demuestra usar **IA (ChatGPT/Claude)** para hacer la transformación geométrica. Tasa de éxito ~50%; cuando falla suele ser por orden de vértices o coplanaridad rota.
 
-[[Open-Studio]] · [[EnergyPlus]] · [[Python]] · FloorSpaceJS · SketchUp · Radiance
+### Aleros equivalentes — celosías
 
-## Conexiones
+Una **celosía** (rejilla horizontal de listones) bloquea radiación tanto como un alero **mucho más grande** mientras se conserve el ángulo crítico. Y permite **paso de aire** — combinación ideal para climas cálidos.
 
-- **Anterior:** [[005-AnalisisSimulacionesPython]] — Flujo de análisis con Python que aquí se aplica
-- **Anterior:** [[004-InterpretandoMensajesConstructionSets]] — Construction Sets que aquí se usan
-- **Siguiente:** [[007-CasoBaseAleros]] — Caso base de referencia y estrategias de sombreado
+#### Caso del paper de la cafetería del IER
+
+El grupo modeló la cafetería con celosía + sistema evaporativo. La celosía se modeló como un **alero equivalente** — preserva los ángulos sin dibujar cada listón. Paper recién enviado (Miriam, Guadalupe y otros). Tomó tres años.
+
+> "Las celosías son buenísimas — tienen lo mejor de los dos mundos: bloquean radiación con efectividad de un alero gigante y permiten ventilación."
+
+### Reflectancia del material del alero
+
+El material del alero **refleja** una fracción de la radiación. Esa radiación reflejada puede **caer en la ventana** que se intentaba sombrear → contraproducente.
+
+Estrategias:
+
+- Aleros con perfil **reflectante hacia afuera**.
+- Análogo en iluminación natural: **light shelves** que redirigen luz al techo.
+
+### Recomendación para el proyecto final
+
+Combinar **alero horizontal + parteluz vertical**:
+
+| Orientación | Estrategia |
+|-------------|------------|
+| Sur | Alero horizontal extendido lateralmente |
+| Norte | Sombreamiento mínimo |
+| Este / Oeste | Parteluces verticales |
+
+## Workflow recomendado — paso a paso
+
+> "Hagan paso por paso. Vayan agregando una cosa, corran, revisen el `.err`, agreguen la siguiente. Si se equivocan al final ya no sabrán cuál de las 10 cosas fue."
+
+Patrón que el profesor enfatiza:
+
+1. **Geometría limpia** → correr → revisar `.err` (cero severes) → guardar `001_volumetria.osm`.
+2. **Materiales y Constructions** → correr → revisar → `002_constructions.osm`.
+3. **Construction Set** asignado a la edificación → correr → revisar → `003_constructionSet.osm`.
+4. **Zonas térmicas** asignadas → correr → revisar → `004_zonas.osm`.
+5. **EPW** asignado → correr → revisar → `005_conEPW.osm`.
+6. **Output Variables** vía measures → correr → verificar SQL/CSV → `006_outputVars.osm`.
+7. **Caso base estable** → ramificar variantes:
+   - `007_color.osm`, `008_alero.osm`, `009_orientacion.osm`...
+
+> "Si empiezo a trabajar y cualquier cosa que le haga al modelo me voy a tener que ir al otro y hacer lo mismo, eso me genera trabajo doble."
+
+Reproducibilidad y narrativa computacional — ver [[../procedures/Estructura-Proyecto-Simulacion]] y [[../concepts/Caricatura-Computacional]].
+
+## Día más cálido — explicitar el criterio
+
+> "Yo a propósito ambivalentemente no especifiqué 'el día más cálido'. Y vi que Ale escogió 'el día con la temperatura más alta'. Pero hay otros criterios."
+
+Criterios posibles para "el día más cálido":
+
+| Criterio | Cómo se calcula |
+|----------|------------------|
+| Día con T máxima absoluta | `df.TO.idxmax()` |
+| Día con T promedio diario más alto | `df.TO.resample("D").mean().idxmax()` |
+| Día con más grados-hora cálidos | Acumulado del modelo adaptativo |
+
+Para el clima de Cuernavaca: el día con T promedio más alto sale **31 de mayo** (no en pleno verano, porque después llegan las lluvias).
+
+> Lección: **siempre explicitar el criterio** cuando se reporta un análisis. "Día más cálido" no es suficiente.
+
+## Warnings nuevos observados
+
+Aparecidos en esta simulación al agregar ventanas y aleros:
+
+| Warning | Significado | Acción |
+|---------|-------------|--------|
+| `Coliniar vertices` | E+ detectó vértices alineados redundantes y los borró. Inocuo. | Ignorar |
+| `Weather location difference` | Pequeña diferencia (~0) en coordenadas al traducir OSM→IDF | Ignorar |
+
+> "En investigación seria, eliminamos **todos** los warnings. En el curso vivimos con los del catálogo conocido si los entendemos."
+
+Comparación con C: warnings peligrosos vs aceptables. Usar un float como int es un warning peligroso por redondeo del compilador. Análogo: tipo de warning que ignoras solo si **sabes** que es inocuo en tu caso.
+
+Detalle en [[../concepts/Mensajes-EnergyPlus]].
+
+## Análisis Python — recap clase 005
+
+Hecho en vivo al final de la clase:
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+from ear_tools.read import read_sql
+from dateutil.parser import parse
+
+dos = read_sql("../OSM/006_outputVars/run/eplusout.sql", alias=True).data
+
+# Día más cálido por promedio diario
+f1 = dos.TO.resample("D").mean().idxmax()
+f2 = f1 + pd.Timedelta(days=2, hours=7)
+
+fig, ax = plt.subplots(figsize=(12, 4))
+ax.plot(dos.T_este,   label="T_este")
+ax.plot(dos.T_oeste,  label="T_oeste")
+ax.plot(dos.TO,       label="TO")
+ax.set_xlim(f1, f2)
+ax.legend()
+```
+
+Comentario sobre `dateutil + Timedelta` (preferido sobre fecha hardcodeada):
+
+> "Cuando ponen en corchetes la fecha, la tienen que estar especificando en todos lados. Definir `f1` y `f2` con dateutil + Timedelta es más elegante."
 
 ## Tarea
 
-- No se dejó tarea nueva esta clase
-- Si algún equipo no terminó la tarea anterior (dos zonas térmicas), completarla
+> No hay tarea nueva. Quien no haya entregado la anterior debe entregarla. La progresión sigue siendo dos zonas térmicas — agregar ventanas y aleros es opcional pero recomendado para empezar a estudiar estrategias bioclimáticas.
+
+## Conceptos derivados
+
+Conceptos nuevos:
+
+- [[../concepts/Ventanas]]
+- [[../concepts/Superficies-de-Sombramiento]]
+- [[../concepts/Limpiar-Geometria]]
+
+Conceptos profundizados:
+
+- [[../concepts/Subsuperficie]] — caso completo de ventanas, WWR
+- [[../concepts/Sistemas-Constructivos]] — materiales de ventana (Simple Glazing vs Glazing)
+- [[../concepts/Construction-Set]] — slot Sub Surface
+- [[../concepts/Mensajes-EnergyPlus]] — warnings de colineares y weather location
+- [[../concepts/Caricatura-Computacional]] — caricaturas nuevas: aleros sin transferencia de calor, marcos ignorados, alero del mismo ancho que la ventana
+- [[../concepts/Espacio-vs-ZonaTermica]] — alturas heredables/sobreescribibles por Space
+
+Procedimientos nuevos:
+
+- [[../procedures/Agregar-Ventanas-OpenStudio]]
+- [[../procedures/Agregar-Aleros-OpenStudio]]
+
+## Conexiones
+
+- ← **Anterior:** [[005-AnalisisSimulacionesPython]] — análisis Python
+- → **Siguiente:** _007-CasoBaseAleros_ — proyecto bioclimático: caso base, evaluación de aleros
+- → Procedimientos clave:
+  - [[../procedures/Agregar-Ventanas-OpenStudio]]
+  - [[../procedures/Agregar-Aleros-OpenStudio]]
+  - [[../procedures/Configurar-Construction-Set]] (slot Sub Surface)
+  - [[../procedures/Analizar-Resultados-Python]]
+
+## Recursos mencionados
+
+- **Paper de la cafetería del IER** — Miriam, Guadalupe et al. — celosía + evaporative cooling, alero equivalente. Recién enviado.
+- **Plataforma solar IER** — caso histórico de cubículos con low-E mal aplicada.
+- **Aaron, Matthew, Fabi de Braille** — proyecto en formación sobre paneles fotovoltaicos translúcidos en fachadas.
+- **OneBuilding** — descarga del EPW (igual que clase 003).
+- **Quarto + uv** — mencionado de paso para cuadernos reproducibles.
+- **Notepad++ / VS Code / Sublime** — editores de texto para modificar el OSM directamente.
+- **ChatGPT / Claude** — usados como hack para transformaciones geométricas en el OSM.

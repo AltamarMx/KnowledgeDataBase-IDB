@@ -1,99 +1,271 @@
-# Analizar Resultados de Simulación con Python
+---
+title: Analizar resultados de simulación con Python
+type: procedimiento
+tags: [procedimiento, python, ear-tools, pandas, matplotlib, sql, analisis]
+aliases: [analizar resultados, leer sql python, plot simulacion]
+clases: [005, 006, 007]
+updated: 2026-05-02
+---
 
-Flujo de trabajo para cargar, verificar y graficar resultados de simulaciones EnergyPlus usando Python, pandas y ear_tools.
+# Analizar resultados de simulación con Python
 
-## Requisitos previos
+Procedimiento para cargar el SQL de Energy Plus en Python y producir las gráficas básicas del taller (T del aire interior vs T exterior, radiación incidente).
 
-- Simulación corrida con variables de salida configuradas ([[Configurar-Variables-Salida]])
-- Entorno Python configurado con uv: `uv add pandas jupyter notebook matplotlib ear_tools`
+## Pre-requisitos
 
-## Paso a paso
+- Simulación ya ejecutada con las variables solicitadas. Ver [[Solicitar-Output-Variables-Measures]].
+- Entorno Python listo con `ear_tools`. Ver [[Setup-Entorno-Python-uv]].
 
-### 1. Iniciar Jupyter Notebook
+## 1. Lanzar Jupyter Notebook
+
+Desde el folder del proyecto:
 
 ```bash
 uv run jupyter notebook
 ```
 
-### 2. Imports estándar
+Crear una nueva libreta dentro de `notebooks/`. Renombrarla con la convención del taller: `001_EDA_simulacion.ipynb`.
+
+## 2. Imports
 
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
 from ear_tools.read import read_sql
+from dateutil.parser import parse
 ```
 
-### 3. Cargar la simulación
+## 3. Localizar el archivo SQL con ruta relativa
+
+Convención: la libreta vive en `notebooks/`. El SQL está en `OSM/<nombre>/run/eplusout.sql`.
 
 ```python
-f = "../osm/mi_proyecto/run/eplusout.sql"
-sim = read_sql(f, alias=True)
+f = "../OSM/mi_primer_cubo/run/eplusout.sql"
 ```
 
-El objeto `sim` contiene:
-- `sim.data` — DataFrame con todas las variables solicitadas (índice datetime)
-- `sim.construction_systems` — lista de sistemas constructivos usados
+> **Truco**: usar el **autocompletado de Jupyter** (`Tab`) para confirmar el path. Si Tab no completa, estás en otro directorio del que crees. Si el path tiene acentos/eñes/espacios, las rutas relativas pueden fallar — ver [[Estructura-Proyecto-Simulacion]].
 
-### 4. Verificar sistemas constructivos (QA)
+## 4. Cargar el SQL
 
 ```python
-sc = sim.construction_systems
-sim.get_constructions(sc)
+cubo = read_sql(f, alias=True)
 ```
 
-Revisar: conductividad, densidad, espesor, absortancia, orden de capas (exterior → interior). Es lo primero que se debe hacer como buena práctica — confirmar que las propiedades térmicas son correctas.
+Devuelve un objeto con varias propiedades. Detalle en [[../tools/ear-tools]].
 
-### 5. Explorar los datos
+### Inspeccionar sistemas constructivos (auditoría)
+
+Antes de creer en los resultados, verificar que los **materiales y propiedades** son los esperados — uno de los errores más comunes:
 
 ```python
-df = sim.data
+sc = cubo.construction_systems
+sc  # lista de nombres
+
+cubo.get_constructions(sc)  # detalle de cada uno con capas y propiedades
+```
+
+Para cada construction se ven:
+
+- Nombre, espesor total, número de capas.
+- Capas en orden ext→int con: conductivity, density, specific heat, thickness, thermal absorptance, roughness.
+
+> "Eso es parte de mi deber. En el grupo solemos tener — Memo, ahí está la simulación, revísala. Lo primero que hago es verificar que las propiedades estén bien."
+
+### Acceder al DataFrame de series temporales
+
+```python
+df = cubo.data
 df.head()
-df.columns  # verificar nombres de columnas (alias)
 ```
 
-Con alias activado, las columnas se renombran:
-- `Ti_<zona>` — temperatura interior
-- `To` — temperatura exterior
-- `Id` — radiación difusa
-- `Ib` — radiación directa
-- `Is` — radiación incidente en superficie
+Con `alias=True`, las columnas tienen nombres cortos: `T_cubo`, `TO`, `IB`, `ID`, `RH`, `WS`, `WD`, etc. Ver convención completa en [[../tools/ear-tools]].
 
-### 6. Graficar temperaturas y radiación
+## 5. Hacer la gráfica de doble panel
 
 ```python
 fig, ax = plt.subplots(2, 1, sharex=True, figsize=(12, 4))
 
-ax[0].plot(df['Ti_cubo'], label='Ti')
-ax[0].plot(df['To'], label='To')
+# Panel superior — temperaturas
+ax[0].plot(df.T_cubo, label="T_cubo")
+ax[0].plot(df.TO,     label="TO")
+ax[0].set_ylabel("Temperatura (°C)")
 ax[0].legend()
-ax[0].set_ylabel('Temperatura [°C]')
 
-ax[1].plot(df['Id'], label='Difusa')
-ax[1].plot(df['Ib'], label='Directa')
+# Panel inferior — radiación
+ax[1].plot(df.ID, label="diffuse")
+ax[1].plot(df.IB, label="beam")
+ax[1].plot(df["IG_techo"], label="incidente techo")  # con corchetes si el alias contiene caracteres especiales
+ax[1].set_ylabel("Radiación (W/m²)")
 ax[1].legend()
-ax[1].set_ylabel('Radiación [W/m²]')
 ```
 
-### 7. Hacer zoom temporal
+### Recomendaciones de plotting
+
+- **Doble panel con eje X compartido** (`sharex=True`) > doble eje Y. Las gráficas de doble eje son **horrorosas en presentaciones** ("nos toma 10 minutos entenderlas").
+- **`figsize=(12, 4)`** es un tamaño cómodo para series temporales horizontales.
+- **`label`** en cada `plot` + `legend()` para que la gráfica se autodocumente.
+
+### Filtrado de columnas con list comprehension
+
+Cuando hay muchas variables de la misma familia (varias zonas, varias superficies), filtrar por prefijo:
 
 ```python
-from dateutil.parser import parse
-
-f1 = parse("2006-03-13")
-f2 = f1 + pd.Timedelta(days=7)
-ax[1].set_xlim(f1, f2)  # aplica a ambos ejes por sharex
+cols_T  = [c for c in df.columns if c.startswith("T_")]
+cols_IS = [c for c in df.columns if c.startswith("IS_")]
 ```
 
-**Tip:** usar `pd.Timedelta(days=7, hours=3, minutes=50)` para intervalos arbitrarios.
+Por esto se eligen prefijos consistentes (`T_`, `IS_`, `IB_`, `ID_`) — para iterar y filtrar fácilmente.
 
-## Buenas prácticas
+### Renombrado custom con diccionario
 
-- **Siempre incluir referencia climática** (To, radiación) junto con temperatura interior
-- **No usar doble eje Y** en presentaciones — usar subplots
-- **Restart & Run All** periódicamente para verificar que el notebook es reproducible
-- **Rutas relativas** desde la ubicación del notebook
-- **Nunca `pip install`** dentro del notebook — usar `uv add` desde la terminal
+Cuando los alias automáticos de `ear_tools` no cubren todos los casos (típicamente: nombres custom de superficies como `Techo`, `vNorte`, `vOeste`):
 
-## Aparece en
+```python
+# Construir el diccionario base con dict comprehension
+df = read_sql(F).data
+nombres = {col: col for col in df.columns}
+print(nombres)
+```
 
-- [[005-AnalisisSimulacionesPython]] — Demostración completa del flujo
+Pegar la salida en una celda nueva, dejar solo las columnas de interés, editar los valores. Después aplicar:
+
+```python
+df.rename(columns=NOMBRES, inplace=True)
+```
+
+> Tip: `rename` **no falla** si una llave del diccionario no existe — útil para reusar el mismo diccionario en variantes con columnas distintas, pero peligroso porque enmascara typos. Verificar con `df.columns` después de renombrar.
+
+### Función de carga reutilizable (anti-anti-patrón)
+
+Para varias simulaciones, definir una función:
+
+```python
+def carga_df(f):
+    df = read_sql(f, alias=False).data
+    df.rename(columns=NOMBRES, inplace=True)
+    return df
+
+base    = carga_df("../OSM/005_caso_base/run/eplusout.sql")
+variante = carga_df("../OSM/006_protecciones/run/eplusout.sql")
+```
+
+> **Bug confesional del profesor**: redefinir el argumento dentro de la función accidentalmente.
+>
+> ```python
+> def carga_df(f):
+>     f = "../OSM/005_caso_base/run/eplusout.sql"  # ❌ ignora el parámetro
+>     return read_sql(f).data
+> ```
+>
+> "No saben cuántas veces me ha pasado y a veces no me doy cuenta — es lo peligroso."
+
+Detalle del flujo de comparación caso base vs variante en [[Comparar-Simulaciones-Python]].
+
+### Encontrar el día más cálido — explicitar el criterio
+
+> "Día más cálido" no es un criterio único. Hay varias interpretaciones:
+
+```python
+# Día con T máxima absoluta
+dia_max_abs = df.TO.idxmax().date()
+
+# Día con T promedio diario más alto (recomendado por el profesor)
+dia_max_prom = df.TO.resample("D").mean().idxmax()
+
+# Día con más grados-hora cálidos (modelo adaptativo)
+# Requiere primero calcular T_neut mensual — ver EDA-Archivo-EPW
+```
+
+> Cuando reportes un análisis: **explicitar el criterio**. "Día más cálido" no es suficiente — siempre acompañar con la métrica usada.
+
+Para zoom alrededor del día más cálido:
+
+```python
+f1 = df.TO.resample("D").mean().idxmax()
+f2 = f1 + pd.Timedelta(days=2, hours=7)
+ax.set_xlim(f1, f2)
+```
+
+## 6. Recortar el rango temporal con dateutil + Timedelta
+
+Para enfocar en una semana específica (en lugar de mostrar todo el año):
+
+```python
+f1 = parse("2006-03-13")               # fecha de inicio
+f2 = f1 + pd.Timedelta(days=7)         # 7 días después
+
+ax[1].set_xlim(f1, f2)
+```
+
+Beneficios de este patrón:
+
+- **`dateutil.parser.parse`** acepta strings flexibles: `"2006-03-13"`, `"March 13, 2006"`, etc.
+- **`pd.Timedelta`** acepta combinaciones humanas: `days=7`, `hours=3`, `minutes=50`, `seconds=30`.
+- Cambiar el rango = cambiar dos líneas. No hay que calcular fechas a mano.
+
+> "Ya defino mi intervalo inicial, mi fecha inicial, más un Timedelta. Le digo: 7 días, 3 horas, 50 minutos. Y ya."
+
+## 7. Mantener la libreta robusta
+
+Antes de cerrar el día, **Restart and Run All**:
+
+> Kernel → Restart & Run All
+
+Esto reinicia el kernel y re-ejecuta todas las celdas en orden. Si la libreta corre limpia, está reproducible. Si falla, hay variables fantasma (creadas y luego borradas pero aún en memoria) o celdas que dependen de orden no-lineal — corregir.
+
+> "Cada cierto tiempo hagan un Restart & Run All. A mí ya casi no me pasa, pero al principio se les arruinan las libretas y al siguiente día ya no funciona y ya no se acuerdan qué hicieron."
+
+## 8. Año en el datetime — el "2006" del EPW
+
+Las simulaciones de E+ por default ponen año `2006` en todos los timestamps (independiente del año real del EPW, que es un TMY mezclado). Si te molesta:
+
+- En el OSM cambiar el año (objeto `RunPeriod`).
+- O en pandas: `df.index = df.index.map(lambda x: x.replace(year=2024))`.
+
+> En el alcance del curso `2006` es solo una etiqueta — los datos siguen siendo válidos. No hay que cambiarlo a menos que se quiera coincidir con un EPW real con fecha.
+
+## 9. Patrón general — cualquier análisis
+
+```python
+# 1. Cargar
+cubo = read_sql("../OSM/<...>/run/eplusout.sql", alias=True)
+
+# 2. Auditar
+cubo.get_constructions(cubo.construction_systems)
+
+# 3. Trabajar en DataFrame
+df = cubo.data
+
+# 4. Filtrar/agregar
+mes = df.resample("ME").mean()       # promedio mensual
+dia = df.resample("D").max()         # máximo diario
+
+# 5. Comparar — muchas simulaciones
+casos = {
+    "base":  read_sql("../OSM/caso_base/run/eplusout.sql", alias=True),
+    "alero": read_sql("../OSM/con_alero/run/eplusout.sql", alias=True),
+}
+for nombre, sim in casos.items():
+    plt.plot(sim.data.T_cubo, label=nombre)
+plt.legend()
+```
+
+## Trampas comunes
+
+| Síntoma | Causa |
+|---------|-------|
+| Columnas con nombres como `CUBO:Zone Mean Air Temperature [C]` | Olvidaste `alias=True` |
+| `KeyError: 'T_cubo'` con `alias=True` | El alias se construye del nombre de la zona; verificar `df.columns` |
+| Tab no autocompleta archivos | Estás en un directorio distinto al esperado — `pwd` o `!ls` |
+| Una variable sale con NaN en muchas filas | Tu measure tiene frecuencia distinta al resto — todas a `Timestep` ([[Solicitar-Output-Variables-Measures]]) |
+| El plot se ve "compacto" sin detalle | No has aplicado `set_xlim`, está mostrando todo el año |
+
+## Para análisis del EPW (no de la simulación)
+
+Ver [[EDA-Archivo-EPW]] — flujo paralelo usando `read_epw` en lugar de `read_sql`.
+
+## Clases relacionadas
+
+- [[../classes/005-AnalisisSimulacionesPython]] — demo completa del flujo
+- [[../classes/006-DosZonasTermicasVentanasAleros]] — patrón de "día más cálido" con criterio explícito
+- [[../classes/007-CasoBaseAleros]] — list comprehensions sobre columnas, renombrado con diccionario, función de carga reutilizable

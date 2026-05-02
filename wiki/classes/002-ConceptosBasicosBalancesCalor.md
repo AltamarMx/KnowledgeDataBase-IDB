@@ -1,179 +1,244 @@
+---
+title: 002 — Conceptos Básicos y Balances de Calor
+type: clase
+clase: 002
+profesor: Guillermo Barrios del Valle
+fuente: raw/videos/002_ConceptosBasicos.md
+fecha_ingesta: 2026-05-02
+tags: [clase, balance-calor, zona-termica, energyplus, epw, tmy]
+aliases: [Clase 002]
+---
+
 # 002 — Conceptos Básicos y Balances de Calor
 
 ## Metadatos
-- **Clase:** 002
-- **Título:** Conceptos Básicos y Balances de Calor
-- **Duración:** ~1h 33min
-- **Profesor:** Guillermo Barrios del Valle
-- **Temas:** zona térmica, transferencia de calor 1D, balance de calor en superficie exterior, módulos de EnergyPlus, archivos EPW/TMY, caricaturas de modelado
 
----
+- **Clase:** 002
+- **Profesor:** Guillermo Barrios del Valle
+- **Fuente:** `raw/videos/002_ConceptosBasicos.md`
+- **Tipo:** Clase teórica con introducción a las ecuaciones del balance de calor
 
 ## Resumen
 
-Clase teórica central donde se explican los fundamentos físicos y matemáticos detrás de las simulaciones en EnergyPlus. Se introduce el concepto de zona térmica, se explica cómo EnergyPlus resuelve la transferencia de calor (1D, dependiente del tiempo), y se detalla el balance de calor en la superficie exterior con sus tres componentes: radiación de onda corta, radiación de onda larga y convección.
+Primera clase técnica del taller. Se define el concepto central de **zona térmica**, se contrasta el modelo **dependiente del tiempo** (lo que hace Energy Plus) contra el modelo **independiente del tiempo** (que solo usa la U y desprecia masa térmica), se recorren los **módulos de Energy Plus** que resuelven cada parte del problema (conducción, ventanas, sombreamiento, cielo, balance de aire), se enuncian las **restricciones fundamentales** del programa (flujo 1D perpendicular, solo líneas rectas) y se escribe el **balance de calor en la superficie exterior** con sus tres componentes — radiación de onda corta, radiación de onda larga, convección — igualados a la conducción.
 
-### Herramientas de IA para el curso
+Cierra con una introducción al **archivo EPW** y al concepto de **TMY** (Typical Meteorological Year). Anuncia que en el proyecto final cada equipo escogerá una ciudad y deberá revisar su EPW.
 
-- **NotebookLM** (Google) — puede recibir videos de YouTube y responder preguntas indicando timestamps exactos del video
-- **Gemini Gems** — el profesor creó un asistente personalizado cargado con la documentación de EnergyPlus (Input/Output + Engineering Reference) para que los estudiantes consulten. Tiene un prompt diseñado para propiciar el estudio, no solo dar respuestas.
+## Objetivos de aprendizaje
 
-### Zona Térmica
+- Entender qué es una [[../concepts/Zona-Termica]] y cómo decidir si un espacio se modela como tal.
+- Distinguir un modelo de transferencia de calor **dependiente del tiempo** de uno independiente, y por qué importa.
+- Tener un mapa de los módulos de [[../tools/EnergyPlus]] y qué resuelve cada uno.
+- Conocer las **restricciones de modelado** que impone Energy Plus.
+- Plantear el balance de calor en la superficie exterior de una pared.
+- Entender qué es un EPW y un TMY.
 
-Un **volumen de aire delimitado por superficies** donde se puede resolver la temperatura interior. Es el concepto fundamental para plantear una simulación en EnergyPlus.
+## Conceptos centrales
 
-**Pregunta clave para identificar una zona térmica:**
-> "¿Si me paro aquí, voy a sentir una temperatura diferente a la del exterior?"
+### Zona térmica
 
-- Si sí → probablemente es una zona térmica
-- Si no, o si no puedo delimitar el volumen → no es zona térmica
+Volumen de aire delimitado por superficies, donde Energy Plus resuelve la temperatura del aire interior. Sin volumen no hay balance de masa, sin balance de masa no hay variación de temperatura.
 
-**Ejemplos:**
-- Pasillos abiertos, escaleras → generalmente NO son zonas térmicas (misma temperatura que exterior)
-- Cuartos cerrados → SÍ son zonas térmicas
-- Cafetería cerrada → podría ser zona térmica si se comporta diferente al exterior
+**Heurística para decidir si un espacio es zona térmica:**
 
-Si no se puede definir el volumen, no se puede calcular cómo sube y baja la temperatura (el balance de masa requiere un volumen definido — mayor volumen = menor impacto por la misma energía).
+> ¿En este espacio se siente una temperatura diferente a la del exterior? Si la respuesta es **siempre sí**, es zona térmica. Si es **a veces sí, a veces no**, podría ser. Si es **siempre no**, no es zona térmica.
 
-### Transferencia de calor en EnergyPlus
+Ejemplos del instituto:
+- Pasillos abiertos del edificio nuevo → **no** son zona térmica (siempre la temperatura del aire exterior).
+- Cafetería actual (muy ventilada) → difícil definirla como zona térmica.
+- Cafetería anterior (más cerrada, con cocina) → sí era zona térmica diferenciada.
 
-EnergyPlus resuelve la ecuación de calor **dependiente del tiempo en 1 dimensión** (perpendicular a cada superficie):
+Detalle en [[../concepts/Zona-Termica]].
 
-> ∂T/∂t = k · ∂²T/∂x²
+### Modelo dependiente del tiempo (vs. independiente)
 
-Donde k es conductividad, considerando también densidad (ρ) y calor específico (Cp) — es decir, la difusividad térmica de cada material.
+Energy Plus resuelve la **transferencia de calor dependiente del tiempo**: la ecuación tiene el término ∂T/∂t y considera la **masa térmica** (densidad × calor específico × espesor) además de la conductividad.
 
-**Métodos de solución:**
+Modelos **independientes del tiempo** usan solo la **U** (inverso de la resistencia térmica). Como no hay derivada temporal, no consideran masa térmica → son inadecuados para entender la dinámica de una edificación en climas con oscilación día/noche.
 
-| Método | Descripción | Ventaja |
-|--------|-------------|---------|
-| **Conduction Transfer Function (CTF)** | Solución semi-analítica con funciones de transferencia (serie tipo Fourier). Método por defecto. | Solución instantánea, muy rápida |
-| **Diferencias Finitas** | Discretización numérica clásica de la ecuación de calor | Más intuitiva, misma ecuación |
+> **Red flag terminológica:** "simulación dinámica" es ambiguo — algunos lo usan para el modelo dependiente del tiempo, otros para un modelo con U pero alimentado por temperatura ambiente y radiación variable. El profesor recomienda decir explícitamente **"modelo de transferencia de calor dependiente del tiempo"**.
 
-Los coeficientes del CTF dependen del **sistema constructivo** (materiales y su orden, de exterior a interior).
+> **Crítica a las normas mexicanas:** las **NOM-008** y **NOM-020** usan modelos con U (independientes del tiempo) → no son adecuadas para evaluar diseño bioclimático en México.
 
-**Restricciones fundamentales:**
-- **Solo 1 dimensión:** el flujo de calor es perpendicular a cada superficie. No modela flujo lateral.
-- **Temperatura uniforme por superficie:** cada muro tiene una temperatura equivalente (promedio ponderado). Si la radiación pega en medio muro, EnergyPlus da un valor promedio.
-- **Solo superficies planas:** no hay líneas curvas ni ventanas circulares. Razón: el factor de vista de una superficie plana consigo misma es 0; una curva se "ve a sí misma" y complicaría enormemente el cálculo radiativo.
-- **No modela puentes térmicos** directamente (flujo lateral en cambios de material).
+Una excepción donde el modelo independiente del tiempo es válido: **ventanas** (masa despreciable).
 
-**Resolución temporal:**
-- Puede resolver cada hora o cada minuto, de un día completo hasta un año completo
-- Mínimo: 1 día. Máximo: 1 año (a 1 minuto = ~525,600 timesteps)
+### Time steps
 
-### Distinción crítica: "simulación dinámica"
+Energy Plus resuelve por intervalos de tiempo:
 
-- **Modelo dependiente del tiempo** (EnergyPlus, CTF, diferencias finitas) → correcto, considera masa térmica
-- **Solo U o R con clima variable** → NO es dependiente del tiempo, aunque le llamen "simulación dinámica"
-- La resistencia térmica (R) y su inversa (U) **no consideran la masa térmica** — surgen de eliminar la dependencia temporal de la ecuación de calor
-- Las **NOM-008 y NOM-020** de México usan el modelo independiente del tiempo → inadecuadas para el clima mexicano
+- Mínimo simulable: **un día**.
+- Resolución típica: **horaria**.
+- Resolución máxima: **cada minuto** → ~525,600 pasos/año por variable.
 
-### Módulos de EnergyPlus (panorama)
+Cada variable solicitada al output genera una serie temporal de ese tamaño.
 
-| Módulo | Función |
-|--------|---------|
-| **CTF / Diferencias Finitas** | Transferencia de calor a través de muros opacos |
-| **Window/Glass** | Modelos simples y complejos de ventanas (multicapa, marcos, intercambio radiativo onda corta/larga + convección, semi-vacío) |
-| **Shading** | Cálculos de obstrucción solar por aleros y protecciones |
-| **Daylighting** | Iluminación natural y deslumbramiento |
-| **Sky Model** | Modelo de cielo como semiesfera dividida en ~156 parches (sol = parche con radiación directa) |
-| **Airflow Network** | Modelo más complejo de EnergyPlus para ventilación natural (diferencia de densidad, viento) — no se usa este semestre |
-| **Fotovoltaicos** | Producción de energía con diferentes modelos de paneles (single diode, etc.) |
-| **HVAC Loops** | Sistemas mecánicos de calefacción/enfriamiento |
-| **District Heating/Cooling** | Calentamiento/enfriamiento centralizado para múltiples edificaciones |
+### Módulos de Energy Plus (panorama)
 
-### Balance de calor en la superficie exterior
+Energy Plus está compuesto por módulos que resuelven cada parte del problema. Detalle de cada módulo en [[../tools/EnergyPlus]]:
 
-El balance tiene **3 componentes** que igualan al flujo conductivo que entra al muro:
+| Módulo | Qué resuelve | Uso en el curso |
+|--------|--------------|-----------------|
+| **Conduction Transfer Function (CTF)** | Conducción dependiente del tiempo a través de muros — solución semi-analítica con funciones de transferencia | Default — se usa |
+| **Diferencias finitas** | Alternativa a CTF — se necesita para materiales con cambio de fase o conductividad variable | No se usa |
+| **Window glass** | Transferencia de calor a través de ventanas (modelos sencillos y complejos, marcos, capas múltiples, intercambio radiativo onda corta y larga) | Se usa |
+| **Shading** | Cálculo de obstrucciones sobre ventanas y superficies (aleros horizontales y verticales) | Se usa |
+| **Sky** | Modelo de cielo — discretización de la semiesfera en parches (uno de ellos brilla = el sol, los demás difusos) | Default — se usa |
+| **Day lighting** | Iluminación natural | No se usa (Radiance es mejor para esto) |
+| **Air heat balance / mass balance** | Balance de energía y masa en el aire de la zona térmica | Se usa |
+| **Airflow Network** | Modelo más complejo de E+ para ventilación natural (incluso con velocidad de viento cero, por diferencia de densidad) | **No se usa en el curso** — demasiado complejo |
 
-#### 1. Radiación de onda corta (solar)
+### Restricciones fundamentales de Energy Plus
 
-> q_SW = (I_directa_proyectada + I_difusa) × α
+Estas restricciones limitan qué se puede modelar y obligan a hacer "caricaturas":
 
-- **α** = absorptancia solar: blanco ~0.2–0.3, negro ~0.8
-- EnergyPlus calcula la proyección sobre la superficie (ángulo solar) y el efecto de sombreamiento
+1. **Flujo de calor 1D perpendicular a la superficie.** No hay flujo lateral entre superficies adyacentes (la conducción esquina-a-esquina se desprecia; el acoplamiento entre muros pasa por convección con el aire interior). Implicación: los puentes térmicos en cambios de material no se capturan bien — son las "vanos".
+2. **Solo líneas rectas.** No hay superficies curvas, no hay ventanas circulares. Razón: el [[../concepts/Factor-de-Vista]] de una superficie consigo misma se asume cero, lo que solo es cierto para superficies planas. Resolver curvas requeriría coordenadas cilíndricas.
+3. **Material homogéneo en cada superficie.** Si necesito modelar trabes empotradas en un techo, debo:
+   - Subdividir la superficie en sub-superficies con sistemas constructivos distintos, o
+   - Usar el objeto **masa térmica** para sumar la inercia perdida.
 
-#### 2. Radiación de onda larga
+> **Principio de modelado:** las simulaciones son **caricaturas**. Una buena caricatura preserva la física relevante; una mala caricatura colapsa lo importante.
 
-Intercambio radiativo con **4 fuentes**, cada una con ecuación de Stefan-Boltzmann y factor de vista:
+## Balance de calor en la superficie exterior
 
-| Fuente | Notas |
-|--------|-------|
-| **Ground (suelo)** | Temperatura del suelo, factor de vista depende de inclinación (techo = 0, muro = ~0.5) |
-| **Cielo** | Temperatura cercana a 0 K → **efecto de enfriamiento**. En la noche, superficies pueden estar más frías que el aire. La radiación solar de día (~840 W/m²) domina, pero la pérdida radiativa al cielo (~-40 W/m²) es significativa |
-| **Aire (atmósfera)** | A grandes distancias, el aire SÍ participa radiativamente (no es "transparente" como se asume en transferencia de calor básica) |
-| **Alrededores** | Otros edificios/objetos con su propia temperatura. Depende del factor de vista |
+Para una superficie opaca expuesta al exterior, Energy Plus iguala el flujo de calor entrante (suma de tres componentes) al flujo conducido hacia el interior:
 
-**Coeficiente radiativo equivalente (h_r):** se transforma la ecuación de Stefan-Boltzmann (T⁴) a forma tipo Newton (h_r · ΔT) para simplificar el acoplamiento con la convección.
+$$
+\underbrace{q''_{\alpha sol}}_{\text{onda corta}} + \underbrace{q''_{LWR}}_{\text{onda larga}} + \underbrace{q''_{conv}}_{\text{convección}} = -k\,\frac{\partial T}{\partial x}\bigg|_{x=0}
+$$
 
-**Dato interesante:** existe un material que refleja la radiación visible y maximiza el intercambio radiativo de onda larga con el cielo → se enfría incluso bajo el sol directo. Sirve para enfriar fluidos pasivamente.
+**Componente 1 — Radiación de onda corta absorbida:**
 
-#### 3. Convección
+$$
+q''_{\alpha sol} = \alpha \cdot (I_{directa,\perp} + I_{difusa})
+$$
 
-> q_conv = h_conv × (T_aire - T_superficie)
+donde α es la [[../concepts/Absortancia-Solar]] (típicamente 0.2-0.3 para colores claros, ~0.8 para oscuros). Energy Plus se encarga de proyectar la radiación directa sobre la superficie usando trayectoria solar aparente y aplica sombreamiento si lo hay.
 
-El coeficiente convectivo **h_conv** depende de:
-- Inclinación de la superficie (vertical vs. horizontal)
-- Diferencia de temperaturas (ΔT)
-- Rugosidad de la superficie (acero/vidrio = liso; concreto = rugoso → mayor h)
-- Velocidad del viento
+**Componente 2 — Radiación de onda larga (4 sub-componentes):**
 
-EnergyPlus usa correlaciones experimentales validadas. Se usan los valores por defecto, pero se pueden fijar (ej. para comparar con normativas como la NOM).
+$$
+q''_{LWR} = q''_{ground} + q''_{sky} + q''_{air} + q''_{surroundings}
+$$
 
-#### Ecuación completa del balance exterior
+Cada sub-componente sigue la forma Stefan-Boltzmann:
 
-> I_s · α + q_LWR + q_conv = -k · ∂T/∂x |_{x=0}
+$$
+q''_i = \varepsilon \, \sigma \, F_{s\to i} \, (T_i^4 - T_s^4)
+$$
 
-Donde x=0 es la superficie exterior y x=L el espesor (superficie interior). El balance de la superficie interior se cubre en la siguiente clase.
+donde ε es la [[../concepts/Emisividad]], σ la constante de Stefan-Boltzmann, F el [[../concepts/Factor-de-Vista]] entre la superficie y la fuente i ∈ {ground, sky, air, surroundings}.
 
-### Archivos EPW y Año Meteorológico Típico (TMY)
+> **Insight clave:** el cielo tiene temperatura cercana al cero absoluto → **enfría** las superficies de noche por intercambio radiativo. La onda larga puede ser el **60-70%** del calor en un muro — no es despreciable como a veces se enseña.
 
-- **EPW** (Energy Plus Weather) contiene datos horarios o minutales: temperatura, humedad relativa, radiación (global, directa, difusa), velocidad y dirección de viento, presión atmosférica
-- **TMY** (Typical Meteorological Year) — **NO es un promedio**:
-  - Para cada mes, se busca el mes que más se parece a todos los meses equivalentes de todos los años (distancias estadísticas, no promedios)
-  - Diferentes meses pueden venir de diferentes años (ej. enero 2016, febrero 2018)
-  - El rango de años de búsqueda se indica en el nombre del archivo
-- **Fuente principal:** [One Building](https://climate.onebuilding.org/) — colección de EPW por país
-- Los datos provienen de **reanálisis** (no estaciones meteorológicas directamente)
-- Se puede construir un EPW propio desde una estación meteorológica (el instituto tiene una)
-- **Limitación del TMY:** tiende a perder anomalías atípicas y el efecto de cambio climático
+**Linealización con coeficiente HR:**
 
-### Modelado como "caricatura"
+Se puede reescribir cada término radiativo en forma "tipo convección":
 
-Los modelos de edificaciones son siempre **simplificaciones** ("caricaturas") de la realidad. La clave es que tengan sentido físico:
+$$
+q''_i = h_{r,i} \, (T_i - T_s)
+$$
 
-- Se pueden **dividir superficies** para asignar diferentes sistemas constructivos (ej. separar trabe de ladrillo)
-- Se pueden **combinar superficies** si no hay diferencias de radiación incidente ni son de materiales distintos
-- Existe el objeto **masa térmica** para representar protuberancias o elementos no modelados en la geometría (ej. trabes que sobresalen al interior)
-- En EnergyPlus no hay transferencia lateral entre superficies adyacentes — están acopladas solo por convección con el aire interior
-- Las decisiones de simplificación requieren entender la física para saber qué es importante y qué se puede despreciar
+donde h_{r,i} se calcula a partir de las temperaturas. Esto facilita el acoplamiento numérico con el término convectivo.
 
-### Proyecto final
+**Componente 3 — Convección:**
 
-- Los equipos deben **escoger una ciudad** y encontrar su EPW en One Building
-- Ciudades con clima extremo dual (calor Y frío, ej. Monterrey, Sonora) = trabajo doble (hay que evaluar temporada cálida Y fría)
-- Se evaluarán estrategias bioclimáticas para una casa en el clima seleccionado
-- Tip: no dejarse llevar por el romanticismo de escoger su ciudad natal si tiene clima extremo
+$$
+q''_{conv} = h_c \, (T_{aire} - T_s)
+$$
 
----
+El coeficiente convectivo h_c depende de:
 
-## Conceptos clave
+- **Inclinación** de la superficie (vertical, horizontal, intermedia)
+- **Diferencia de temperatura** ΔT
+- **Rugosidad** del material (acero/vidrio: lisos; concreto pulido vs. concreto rugoso: difieren)
+- **Velocidad del viento**
 
-- **[[Zona-Termica]]** — volumen de aire delimitado por superficies donde se resuelve la temperatura interior
-- **[[Balance-de-Calor]]** — ecuación que iguala los flujos incidentes en una superficie con la conducción
-- **[[Absorptancia-Solar]]** — fracción de radiación solar absorbida por una superficie (0–1)
-- **[[Factor-de-Vista]]** — fracción de radiación emitida por una superficie que llega a otra
-- **[[TMY]]** — año meteorológico típico construido con los meses más representativos de un periodo
+Energy Plus tiene **correlaciones experimentales** para distintos casos. **No** resuelve mecánica de fluidos. Hay correlaciones más adecuadas para ciertos climas y otras menos. En el curso se usan los defaults; para comparaciones contra normativas (NOM-008, NOM-020) se fijan los coeficientes que la norma especifica.
 
-Conceptos previos referenciados: [[Simulacion-Energetica]], [[Condiciones-de-Frontera]], [[Sistemas-Constructivos]], [[Envolvente-Arquitectonica]], [[Confort-Termico]]
+## Caricaturas y decisiones de modelado
 
-## Herramientas mencionadas
+El profesor da varios ejemplos de cómo construir una "caricatura" del salón actual:
 
-[[Open-Studio]] · [[EnergyPlus]] · [[Python]] · NotebookLM · Gemini Gems · Radiance · Design Builder
+- **Versión simple:** 6 superficies (4 muros + piso + techo), todos del mismo sistema constructivo (tabique blanco; piso y techo de concreto). Sin ventanas.
+- **Versión intermedia:** dividir el muro grande en tres sub-superficies (trabe — ladrillo — trabe), cada una con su sistema constructivo. O simplificar a dos: trabe + ladrillo.
+- **Trampa válida:** sumar dos muros idénticos con la misma orientación y sin radiación incidente en uno de ellos en una sola superficie del doble de largo. Energy Plus no nota la diferencia mientras no haya radiación o sombreamiento que distinga uno del otro.
+
+> **Cuándo es válido sumar/simplificar:** cuando no hay radiación incidente ni sombreamiento que diferencie superficies. Si hay diferencias de carga, hay que conservar la representación.
+
+## Archivo EPW y TMY
+
+El archivo de clima EPW (Energy Plus Weather) tiene los datos horarios o sub-horarios de:
+
+- Temperatura del aire
+- Humedad relativa
+- Velocidad y dirección del viento
+- Radiación global, directa, difusa
+- Presión atmosférica
+- Lluvia
+- Ubicación geográfica
+
+### TMY (Typical Meteorological Year)
+
+Año típico meteorológico — **no es un año promedio**.
+
+Cómo se construye: para cada mes, se busca el año real cuyos datos de ese mes **se parecen más a la distribución de todos los años**. Mide distancias estadísticas (similar a R² en un fit). El año típico resultante puede ser un Frankenstein con enero de 2016, febrero de 2018, marzo de 2016, etc.
+
+**Implicaciones:**
+
+- El TMY **suaviza anomalías**: meses extremos quedan fuera por construcción.
+- Por tanto, **pierde gran parte del efecto de cambio climático** (las anomalías cada vez son más frecuentes).
+- Los datos provienen típicamente de **reanálisis** (no de estaciones meteorológicas directamente) — validados donde se puede.
+
+Detalle en [[../concepts/TMY]].
+
+### Dónde bajar EPWs
+
+- **OneBuilding** — colección global de archivos EPW. Cada zip viene con varios archivos; uno es el EPW.
+- Los nombres incluyen el periodo (ej. TMY-2007-2021, TMY-2009-2023). Son TMYs distintos según el rango.
+
+### Construir un EPW propio
+
+El grupo construye EPWs desde la **estación meteorológica de Temixco** cuando hace experimentos locales. Esto es fácil técnicamente pero pierde el carácter "típico" — un solo año con anomalía puede sobredimensionar el diseño.
+
+Otro recurso interno: Jesús Quiñones (instituto) publicó un **año típico solar** (basado en datos solares, no meteorológico general) en ANES.
+
+## Proyecto final — anuncio
+
+Cada equipo escogerá una **ciudad** donde se evaluará la casa del proyecto.
+
+**Tip estratégico del profesor:**
+
+- **No escojan climas con doble extremo** (Monterrey, Sonora) — implican diseñar para temporada cálida **y** fría. Las soluciones se pisan: lo que mejora una empeora la otra.
+- **Climas calurosos** (ej. Temixco) → solo temporada cálida → más manejable.
+- **Climas fríos puros** → solo temporada fría.
+- "No se dejen llevar por el romanticismo" de escoger su ciudad natal.
+
+Tendrán que verificar que **existe el EPW** del lugar y aprender a inspeccionarlo.
+
+## Conceptos derivados (referencias)
+
+Conceptos nuevos introducidos o profundizados en esta clase:
+
+- [[../concepts/Zona-Termica]] — volumen de aire delimitado por superficies
+- [[../concepts/Balance-de-Calor]] — actualizada con ecuación del balance en superficie exterior
+- [[../concepts/Factor-de-Vista]] — fracción de radiación que recibe una cara desde otra
+- [[../concepts/Absortancia-Solar]] — fracción de radiación solar que absorbe una superficie
+- [[../concepts/Emisividad]] — eficiencia radiativa relativa al cuerpo negro
+- [[../concepts/Radiacion-Onda-Larga]] — intercambio radiativo con ground, sky, air, surroundings
+- [[../concepts/Masa-Termica]] — densidad × calor específico × espesor; razón por la que importa el modelo dependiente del tiempo
+- [[../concepts/TMY]] — año típico meteorológico
 
 ## Conexiones
 
-- **Anterior:** [[001-IntroduccionTallerIDB]] — Presentación del curso y ecosistema de software
-- **Siguiente:** [[003-MiPrimeraSimulacion]] — Balance interior y primera simulación práctica
-- **Materia relacionada:** Energía en Edificaciones (ventilación, cargas térmicas, geometrías complejas)
+- ← **Anterior:** [[001-IntroduccionTallerIDB]] — introducción y herramientas
+- → **Siguiente:** _003-MiPrimeraSimulacion_ — empieza a dibujar y simular
+- → Reglas (incluye asistente IA del curso): [[../REGLAS_CURSO]]
+- → Materia siguiente del plan: Energía en Edificaciones (ahí se ven Diferencias finitas, Airflow Network, masa térmica con detalle, EPW propio con cambio climático)
+
+## Recursos mencionados
+
+- **OneBuilding.org** — repositorio global de archivos EPW.
+- **Jesús Quiñones** (Instituto) — año típico solar publicado en ANES.
+- **Página de Energy Plus** — para revisar la lista oficial de módulos.
+- **NotebookLM** y **Gems de Gemini** — herramientas RAG para construir el asistente IA del curso (ver [[../REGLAS_CURSO]]).

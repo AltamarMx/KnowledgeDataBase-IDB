@@ -1,61 +1,105 @@
+---
+title: Condiciones de Frontera
+type: concepto
+tags: [concepto, fisica, frontera, boundary-conditions]
+aliases: [condicion de frontera, boundary condition]
+clases: [001, 002, 003, 004]
+updated: 2026-05-02
+---
+
 # Condiciones de Frontera
 
-Especificaciones matemáticas que definen el comportamiento en los límites del modelo de simulación. Determinan cómo interactúa cada superficie de la envolvente con su entorno.
+## Definición
 
-## Tipos principales
+Especificación matemática de cómo interactúa una superficie con su entorno. Son **necesarias** para que el [[Balance-de-Calor]] sea un problema bien planteado: sin condiciones de frontera, las ecuaciones no tienen solución única.
 
-1. **De temperatura** — se especifica una temperatura en el borde (ej. temperatura del suelo, temperatura de un espacio adyacente)
-2. **De flujo de calor** — se especifica el flujo de calor a través del borde:
-   - Flujo constante
-   - Flujo variable
-   - Flujo cero = **condición adiabática** (no hay transferencia de calor)
-3. **Convectiva** — se especifica un coeficiente de transferencia por convección
+## Tipos en transferencia de calor
 
-## En EnergyPlus
+| Tipo | Qué se especifica | Ejemplo |
+|------|-------------------|---------|
+| **Temperatura** (Dirichlet) | Temperatura impuesta en la superficie | Piso en contacto con suelo a una temperatura del ground |
+| **Flujo de calor** (Neumann) | Flujo de calor a través de la superficie | Flujo constante, variable, o **cero** (caso especial: adiabática) |
+| **Convectiva** (Robin / mixta) | Coeficiente de convección + temperatura del fluido | Superficie en contacto con aire exterior |
 
-La condición de frontera exterior se expresa como el [[Balance-de-Calor]]:
+### Caso especial: condición adiabática
 
-> I_s · α + q_LWR + q_conv = -k · ∂T/∂x |_{x=0}
+Una **condición adiabática** es una condición de flujo de calor con valor **cero**: por esa superficie no hay transferencia de calor. Equivale a "aislar" perfectamente esa cara del modelo.
 
-Donde x=0 es la superficie exterior. Esta ecuación acopla la radiación solar, radiación de onda larga (ground, cielo, aire, alrededores) y convección con el flujo conductivo que entra al muro.
+## Uso en este curso
 
-## En el curso
+### Piso adiabático
 
-- El **piso se modela como adiabático** (simplificación) porque determinar la temperatura del suelo depende del clima, material, humedad y tipo de terreno
-- Las superficies exteriores se conectan con el clima (archivo EPW)
-- Open Studio permite revisar visualmente las condiciones de frontera de cada superficie
+El piso de las simulaciones del taller se modela como **adiabático**.
 
-## Visualización en Open Studio
+**Razón:** la temperatura del suelo (ground) depende de muchos factores — clima, tipo de material (no es lo mismo un pastizal que una zona volcánica), humedad, profundidad. Determinarla bien es "todo un arte" y se sale del alcance del curso. Se aborda en Energía en Edificaciones.
 
-En el 3D View → **Render by Boundary**:
+### Otras superficies
 
-| Color | Condición | Significado |
-|-------|-----------|-------------|
-| Azul | Outdoor | Expuesta a sol y viento |
-| Verde | Surface/Interzone | Conectada a zona adyacente |
-| Rojo | Adiabatic | Flujo de calor = 0 |
-| Otro | Ground | Temperatura del suelo |
+- **Muros y techo exteriores:** condición **mixta** — convección con el aire ambiente + intercambio radiativo de onda corta (radiación solar absorbida) + intercambio radiativo de [[Radiacion-Onda-Larga]] con ground/sky/air/surroundings. La forma combinada es:
 
-## Combinaciones con Sun/Wind Exposure
+  $$
+  q''_{\alpha sol} + q''_{LWR} + q''_{conv} = -k \frac{\partial T}{\partial x}\bigg|_{x=0}
+  $$
 
-En EnergyPlus, una superficie con condición **Outdoor** puede tener desactivada la exposición al sol y/o al viento:
+  Esta es **la** condición de frontera típica del exterior — ver detalle en [[Balance-de-Calor]].
+- **Muros interiores entre zonas:** condición de frontera entre zonas (cada zona resuelve su balance y el muro es interfaz).
+- **Vecinos / sombreamiento:** decisión de modelado — se pueden meter como geometría que sombrea, o como condición de frontera específica.
 
-| Caso | Sol | Viento | Ejemplo |
-|------|-----|--------|---------|
-| Outdoor completo | Sí | Sí | Fachada normal |
-| Outdoor sin sol | No | Sí | Superficie sombreada permanentemente por edificio adyacente |
-| Outdoor sin sol ni viento | No | No | Estacionamiento subterráneo (tiene aire pero no sol ni viento) |
+## Catálogo en Open Studio (Render by Boundary)
 
-**Aplicación más común:** pisos sobre estacionamiento subterráneo — se quita exposición al sol manteniendo convección con aire exterior.
+En el preview 3D de Open Studio el selector **Render By → Boundary Conditions** colorea cada superficie según su condición. Aprenderse los colores acelera el debug visual:
 
-## Condición Other Side Coefficients
+| Color | Condición OS | Significado físico |
+|-------|---------------|---------------------|
+| **Azul** | `Outdoors` | Expuesto al sol y al viento — radiación incidente, convección con aire ambiente, intercambio LWR con ground/sky/air/surroundings |
+| **Verde** | `Surface` (interzona) | Frontera entre dos zonas térmicas — el calor que sale por una entra a la otra; la superficie ya **no recibe radiación incidente ni LWR** del exterior |
+| **Café/marrón** | `Ground` | En contacto con el suelo — temperatura del ground del modelo |
+| **Rojo** | `Adiabatic` | Flujo de calor cero — superficie aislada del modelo |
 
-Permite definir una **temperatura constante** en la cara exterior. Útil para casos especiales no cubiertos por las condiciones estándar.
+> Hay **diferentes tonos** dentro de cada categoría (variantes del azul, etc.) — corresponden a sub-tipos.
 
-## Aparece en
+### Cómo se asigna en Open Studio
 
-- [[001-IntroduccionTallerIDB]] — Explicación de los tipos y simplificaciones usadas
-- [[002-ConceptosBasicosBalancesCalor]] — Ecuación del balance exterior como condición de frontera
-- [[003-MiPrimeraSimulacion]] — Representación visual con colores, aplicaciones prácticas de condiciones adiabáticas
-- [[004-InterpretandoMensajesConstructionSets]] — Combinaciones sun/wind exposure, Other Side Coefficients, estacionamiento subterráneo
-- [[006-DosZonasTermicasVentanasAleros]] — Intersección automática con diferentes alturas, limpieza de geometría
+- Default al dibujar: muros y techo en `Outdoors`, piso en `Ground`.
+- Cuando se **unen físicamente** dos espacios en FloorspaceJS (paredes tocándose, línea punteada al hacer merge), Open Studio convierte automáticamente Outdoor → Surface en el muro común.
+- Si se dejan **separados por un margen** (1 cm, 10 cm), Open Studio **no detecta interzona** — los muros quedan como Outdoor y las dos zonas pierden el acoplamiento térmico. Truco a evitar.
+- Para forzar `Adiabatic` (caso típico: piso del curso): pestaña Spaces → Surfaces → columna `Outside Boundary Condition` → cambiar a `Adiabatic`.
+
+### Pisos adiabáticos en edificios multi-piso
+
+En un edificio con varios pisos, los **pisos intermedios** pueden modelarse adiabáticos arriba y abajo cuando la temperatura es similar entre niveles (lo que sale de un piso entra al de arriba; los flujos se aniquilan). Solo el piso de planta baja toca el ground; solo el techo del último piso toca outdoors.
+
+## Sun Exposure y Wind Exposure (Outdoors)
+
+Para superficies con condición `Outdoors`, Open Studio expone dos columnas adicionales que actúan como **dimensiones independientes**:
+
+| Columna | Valores | Efecto físico |
+|---------|---------|---------------|
+| **Sun Exposure** | `SunExposed` / `NoSun` | Si `NoSun` se desactiva la radiación de onda corta sobre esa superficie |
+| **Wind Exposure** | `WindExposed` / `NoWind` | Si `NoWind` el coeficiente convectivo no usa la velocidad del viento del EPW (solo convección natural) |
+
+### Combinaciones útiles
+
+| Caso | Sun | Wind | Por qué |
+|------|-----|------|---------|
+| Muro o techo expuesto (default) | SunExposed | WindExposed | Comportamiento normal |
+| **Estacionamiento subterráneo** (techo del estacionamiento, piso del edificio) | NoSun | WindExposed | Aire del estacionamiento sin sol pero con convección |
+| Edificios muy pegados sin espacio | NoSun | NoWind | Cuando no se quiere modelar al vecino como geometría |
+| Caverna o sótano técnico cerrado | NoSun | NoWind | Sin convección al ambiente |
+
+> "Donde más se usa es en pisos que tienen estacionamiento subterráneo. No tengo cielo, no tengo exposición al sol, pero sí tengo convección. Es lo más común — un edificio con un estacionamiento, en lugar de simularlo como zona térmica."
+
+Es una caricatura: en estos casos la temperatura del aire que toca la superficie se asume = T_amb del EPW. Es imperfecto pero pragmático cuando no se quiere modelar el espacio del estacionamiento como zona térmica adicional.
+
+## Por qué importa la calidad de las condiciones de frontera
+
+> "Si las condiciones de frontera están mal, el resultado es incierto."
+
+Una crítica del profesor a interfaces como Design Builder es que **automatizan las condiciones de frontera sin que el usuario sea consciente**, lo que propicia simulaciones mal planteadas. Por eso el curso enfatiza entender qué condición se está aplicando y por qué.
+
+## Clases relacionadas
+
+- [[../classes/001-IntroduccionTallerIDB]] — introducción a los tipos y al uso de piso adiabático
+- [[../classes/002-ConceptosBasicosBalancesCalor]] — la condición de frontera externa típica como combinación radiativa + convectiva
+- [[../classes/003-MiPrimeraSimulacion]] — catálogo de colores Open Studio, conversión automática Outdoor→Surface al unir espacios, forzar piso adiabático
+- [[../classes/004-InterpretandoMensajesConstructionSets]] — Sun y Wind Exposure como dimensiones independientes; caso del estacionamiento subterráneo

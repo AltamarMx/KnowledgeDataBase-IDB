@@ -1,260 +1,356 @@
-# 004 — Interpretando los Mensajes de Simulaciones y Construction Sets
+---
+title: 004 — Interpretando mensajes de simulaciones y Construction Sets
+type: clase
+clase: 004
+profesor: Guillermo Barrios del Valle
+fuente: raw/videos/004_InterpretandoMensajesSimulacionesConstructionSets.md
+fecha_ingesta: 2026-05-02
+tags: [clase, openstudio, debugging, err, construction-set, warm-up, measures, sql]
+aliases: [Clase 004]
+---
+
+# 004 — Interpretando mensajes de simulaciones y Construction Sets
 
 ## Metadatos
+
 - **Clase:** 004
-- **Título:** Interpretando los Mensajes de Simulaciones y Construction Sets
 - **Profesor:** Guillermo Barrios del Valle
-- **Temas:** archivo ERR, warnings vs errores severos, debugging de simulaciones, construction sets, measures (OSM e IDF), warm-up period, convergencia, cálculo de sombras, SQL y CSV, site source factors, masa térmica, condiciones de frontera avanzadas
+- **Fuente:** `raw/videos/004_InterpretandoMensajesSimulacionesConstructionSets.md`
+- **Tipo:** Clase mixta — revisión en vivo de la tarea de un equipo + tour de mensajes de simulación + introducción a Construction Sets
 
----
+## Apertura — paro del lunes
 
-## Resumen
+El profesor abre haciendo un llamado a los hombres del grupo a sumarse al **paro del lunes**, a no asistir a clases y participar en el seminario de las 11. Reflexión sobre violencia, feminicidios, importancia de generar espacios entre hombres para hablar de estos temas y romper "el pacto patriarcal".
 
-Clase centrada en desarrollar la habilidad de **leer e interpretar los mensajes que genera EnergyPlus** (archivo .err) para diagnosticar y corregir simulaciones. Se revisa una tarea de alumnos para ilustrar errores comunes, se introduce el concepto de **Construction Set** como forma eficiente de asignar sistemas constructivos, y se explica el **warm-up period** (convergencia de la condición inicial). También se cubren temas de salida de datos (SQL, CSV, reporte HTML) y conceptos como masa térmica y site source factors.
+> "Hagamos todo lo posible para que ustedes que decidan hacer paro lo puedan hacer sin ninguna preocupación."
 
----
+(Esta apertura se documenta en `REGLAS_CURSO.md` cuando corresponda — postura del profesor sobre el clima social del aula.)
 
-## 1. Estructura de archivos del proyecto OSM
+## Resumen técnico
 
-- Cuando Open Studio corre una simulación, **crea una carpeta** junto al archivo .osm con todos los archivos necesarios
-- **No mover el .osm dentro de esa carpeta** — si lo haces, al abrir el .osm se crea otra carpeta anidada, en un ciclo infinito
-- **No guardar archivos propios** dentro de la carpeta que crea Open Studio — se borra cada vez que se vuelve a correr
-- Si mueves el .osm a otra ubicación, **pierde la ruta del EPW** y hay que reasignarla
-- Botón **Show Simulation** abre la carpeta de resultados
+Tres bloques principales:
 
----
+1. **Revisión de tarea de un equipo** en vivo — surge el problema de **mover el OSM al folder hermano** que crea Open Studio. Demostración de cómo eso rompe el path al EPW. Refuerzo de la regla: nunca mover el OSM, dejar que cada OSM cree su propio folder hermano.
+2. **Tour del archivo `.err`** — qué es Severe vs Warning, cómo leerlos, catálogo de warnings ignorables (LCA, design days), errores típicos (`outside layer not found`, `no weather file`). Introducción al flujo OSM→IDF→E+ con dos puntos de Measures.
+3. **Construction Sets** — el concepto, cómo asignar masivamente constructions a superficies por (tipo × condición de frontera), asignación a la edificación desde Facility, defaults verdes vs sobreescrituras locales, columnas Sun/Wind Exposure.
 
-## 2. Archivo ERR: warnings vs errores
+Conceptos colaterales: **Warm-up Period**, **Shadow Update**, salidas SQL/CSV/HTML, **Site/Source factors**, particiones internas como masa térmica, rotación de la edificación desde Facility.
 
-El archivo `.err` se genera en la carpeta de simulación y se abre con cualquier editor de texto (ej. Notepad).
+Cierra con la **tarea**: dos zonas térmicas con tres sistemas constructivos (sin ventanas todavía), pedir datos al simulador y empezar análisis con pandas.
 
-| Tipo | Efecto | Acción |
-|------|--------|--------|
-| **Warning** | La simulación **continúa** — EnergyPlus toma un valor por defecto o señala algo "raro" | Revisar como experto si el warning afecta los resultados |
-| **Severe Error** | La simulación **se detiene** | Corregir el problema e intentar de nuevo |
+## Objetivos de aprendizaje
 
-### Warnings comunes (ignorables en este curso)
+- Entender el flujo **OSM → (OSM Measures) → IDF → (IDF Measures) → Energy Plus** y por qué existen dos puntos de inyección.
+- Saber abrir y leer el archivo **`.err`**: distinguir Severe vs Warning, identificar el catálogo de warnings ignorables.
+- Entender qué es un **[[../concepts/Construction-Set]]** y cómo asignarlo masivamente.
+- Entender el **[[../concepts/Warm-up-Period]]** y por qué el día de inicio de simulación importa.
+- Conocer las **salidas** que produce E+: SQL, CSV, HTML, ERR.
+- Conocer el rol de los **[[../concepts/Site-Source-Factor]]** y la limitación en México.
+- Saber configurar **Sun Exposure** y **Wind Exposure** para casos como estacionamientos subterráneos.
 
-- Warnings de **análisis de ciclo de vida** (Lifecycle Assessment) — Open Studio está diseñado para cumplir métricas ASHRAE; si no se definen salidas de consumo energético, aparecen estos warnings
-- Warnings de **outputs no definidos** — por la misma razón
-- Warning de **design days** no incluidos en el EPW — no afecta si no se está dimensionando equipo HVAC
-- Estos warnings **aparecerán repetidamente** en todas las simulaciones del curso y está bien
+## Revisión de tarea — el caso del OSM movido
 
-### Errores severos comunes
+El equipo movió accidentalmente el OSM dentro del folder hermano que crea Open Studio. Cuando se vuelve a abrir el OSM desde ahí, **se rompe el path al EPW**.
 
-- **Falta archivo de clima (EPW)** — no se asignó o se movió el .osm y perdió la ruta
-- **Material faltante en un sistema constructivo** — si una Construction no tiene todas sus capas, EnergyPlus no puede calcular la transferencia de calor
-  - Mensaje: `Missing material in property "Outside Layer"` + nombre de la construction
-  - Solución: abrir la Construction y arrastrar el material faltante
+Encadenamiento de errores observados:
 
-**Principio clave:** una vez que sabes leer el .err, los errores se corrigen en minutos. Sin esa habilidad, puedes estar horas sin saber qué está mal.
+1. **Severe**: `no weather file found` — porque el path al EPW se perdió al mover el archivo.
+2. Tras re-asignar EPW (Site → Set Weather File), nuevo run.
+3. **Severe**: `Construction "Cubo": missing material assignments` — la construction quedó sin material (probablemente al rehacer no se completó).
+4. Tras arrastrar el material a la construction, nuevo run.
+5. **Complete with 14 Warnings** — todos del catálogo LCA → ignorables → simulación válida.
 
----
+> Refuerzo de regla: el OSM se queda en `OSM/` del proyecto. **Nunca** se mueve dentro del folder hermano (que se llama igual y se borra/regenera en cada Run). Detalle en [[../procedures/Estructura-Proyecto-Simulacion]].
 
-## 3. Construction Sets
+## El flujo OSM → IDF → Energy Plus
 
-Un **Construction Set** es una agrupación que asigna sistemas constructivos automáticamente según el tipo y condición de frontera de cada superficie.
-
-### Estructura del Construction Set
-
-| Categoría | Aplica a |
-|-----------|----------|
-| **Exterior Surface Construction** | Muros, pisos y techos con condición Outdoor |
-| **Interior Surface Construction** | Superficies con condición Surface/Interzone |
-| **Ground Contact Surface Construction** | Superficies con condición Ground |
-| **Adiabatic Surface Construction** | Superficies con condición Adiabatic |
-| **Sub Surface** | Puertas y ventanas (también diferenciadas por condición) |
-
-### Cómo usar un Construction Set
-
-1. Crear el Construction Set en la pestaña correspondiente y darle un **nombre descriptivo** (ej. "casa_ladrillo_concreto" — referencia a ladrillo en muros, concreto en techos)
-2. Arrastrar los sistemas constructivos desde **My Model** a cada categoría
-3. Ir a **Facility** y asignar el Construction Set al edificio completo
-4. Todas las superficies que coincidan con la condición recibirán automáticamente su sistema constructivo
-
-### Ventajas
-
-- **Escala**: un edificio puede tener 200+ superficies — imposible asignar una por una
-- **Reutilización**: un Construction Set bien nombrado (ej. por norma ASHRAE, zona climática, nivel de aislamiento) se puede reusar entre proyectos
-- **Sobrescritura selectiva**: si una superficie necesita un sistema diferente, se asigna manualmente y sobrescribe al del set (cambia de verde — default — a otro color)
-
-### Verificación visual
-
-- Las superficies con sistema asignado por el Construction Set aparecen en **verde** (default)
-- Si se sobrescribe manualmente, cambia de color
-- Si una condición de frontera no tiene sistema asignado en el set, esa superficie queda **sin sistema** y genera error
-
----
-
-## 4. Measures (introducción)
-
-Los Measures son scripts que modifican la simulación en dos puntos del flujo:
+Cuando se da `Run`, ocurre internamente:
 
 ```
-OSM → [OpenStudio Measures] → traducción a IDF → [EnergyPlus Measures] → simulación
+OSM (texto plano, formato Open Studio)
+    │
+    ▼
+[OSM Measures]  ← scripts Ruby que modifican el OSM
+    │
+    ▼
+OSM modificado
+    │
+    ▼
+Traductor → IDF (formato Energy Plus)
+    │
+    ▼
+[IDF Measures]  ← scripts Ruby que modifican el IDF
+    │
+    ▼
+IDF modificado
+    │
+    ▼
+Energy Plus corre el IDF
+    │
+    ▼
+Resultados: SQL + CSV + HTML + ERR
 ```
 
-1. **OpenStudio Measures** — modifican el modelo OSM antes de traducirlo a IDF
-2. **EnergyPlus Measures** — modifican el IDF antes de que corra EnergyPlus
+> Hay **dos oportunidades** para modificar la simulación: antes de la traducción (OSM Measures) y después (IDF Measures). Esto permite acceder a features de E+ que la GUI no expone, y hacer estudios paramétricos.
 
-**Utilidad principal:** agregar funcionalidades que no están en la interfaz de Open Studio. Ejemplos:
-- Variar el porcentaje de ventana respecto al muro (25%, 50%, 75%, 100%) → **estudios paramétricos**
-- Cambiar sistemas constructivos en todas las superficies exteriores por tres opciones diferentes → tres simulaciones automáticas
-- Potencial para automatizar cumplimiento normativo
+Detalle en [[../concepts/Measures]].
 
----
+### Por qué importan los Measures
 
-## 5. Warm-up Period
+- **Estudios paramétricos**: una measure puede generar 4 variantes con ventanas al 25/50/75/100% del muro. Cada variante corre como simulación independiente.
+- **Acceso a features no expuestas**: ventanas operables con controles avanzados, Airflow Network, controles de iluminación dinámicos.
+- **Compliance** con normativas (en EE.UU. — ASHRAE 90.1, Title 24, LEED).
 
-### El problema de la condición inicial
+En el curso se mencionan brevemente; no se usan a fondo.
 
-EnergyPlus inicializa todas las zonas térmicas y materiales a **23°C**. Esta temperatura arbitraria no corresponde a la realidad del clima simulado.
+## Lectura del archivo `.err`
 
-### Cómo funciona el warm-up
+Procedimiento detallado en [[../procedures/Leer-Archivo-ERR]]. Resumen:
 
-1. Toma el **primer día** de la simulación (por defecto, 1 de enero)
-2. Simula ese día completo partiendo de 23°C
-3. Al final del día, registra la temperatura final (ej. 25°C)
-4. **Repite** el mismo día, pero partiendo de 25°C
-5. Repite hasta que la diferencia entre iteraciones sea < criterio de convergencia (~0.1°C)
-6. Resultado: alcanza un **estado oscilatorio permanente** donde la condición inicial de 23°C ya no influye
+1. **Show Simulation** → abrir el folder de outputs.
+2. Abrir `eplusout.err` con un editor de texto (Notepad / TextEdit).
+3. **Buscar Severes / Fatals primero** — los Severes detienen la simulación.
+4. Después, leer Warnings y filtrar.
 
-### Factores que afectan la convergencia
+### Severe vs Warning
 
-- **Masa térmica alta** (materiales densos, gruesos) → más iteraciones para converger
-- **Clima severo** (ej. Canadá en invierno) → mayor distancia de 23°C al equilibrio → más iteraciones
-- **Casas pequeñas/livianas** → convergen rápido (3 warm-up days típicos)
+| Nivel | Comportamiento | Acción |
+|-------|----------------|--------|
+| **Severe / Fatal** | E+ se detiene. Sin resultados. | Corregir antes de continuar. |
+| **Warning** | E+ continúa con suposiciones. | Decidir si la suposición invalida la simulación. |
 
-### Implicación importante para comparaciones
+### Errores severos típicos
 
-- Si se van a comparar simulaciones en un mismo día, **todas deben empezar en la misma fecha**
-- La edificación "recuerda" el clima de los días anteriores por efecto de masa térmica
-- No es lo mismo empezar el 1 de enero que el 1 de febrero → el warm-up del primer día depende del clima de ese día
+- `outside layer not found` → construction sin material.
+- `no weather file found` → EPW no asignado o path roto.
+- `invalid polygon` → geometría rota.
 
----
+### Catálogo de warnings ignorables (en el alcance del curso)
 
-## 6. Cálculo de sombras
+Open Studio está pensado para ASHRAE / análisis de ciclo de vida (LCA). Genera warnings cuando faltan inputs típicos de ese flujo:
 
-EnergyPlus calcula las **máscaras de sombramiento** por defecto **cada ~20 días** (no diariamente). La trayectoria solar aparente cambia poco en 20 días, así que es una buena aproximación.
+| Warning | Por qué aparece | Ignorable porque |
+|---------|-----------------|-------------------|
+| `No design days defined` | Espera días de diseño para HVAC sizing | El curso no dimensiona HVAC |
+| `Output:Variable <X> not found` (variables LCA) | Espera outputs de ciclo de vida | El curso no hace LCA |
+| `Site/Source factors not specified` | Espera factores de conversión sitio→fuente | El curso no calcula consumo neto |
 
-- Se puede forzar cálculo diario pero es más lento computacionalmente
-- Esta simplificación hace que EnergyPlus **no sea el mejor programa para iluminación natural** — Radiance (trazado de rayos inverso) calcula cada hora
-- Herencia de cuando las computadoras eran lentas (EnergyPlus nació ~1976-79 como otro programa)
+Detalle y catálogo más amplio en [[../concepts/Mensajes-EnergyPlus]].
 
----
+> "Open Studio está pensado para cumplir métricas de consumo de energía y de Análisis de Ciclo de Vida. Pero aquí ni siquiera hay consumo de energía y no he definido las salidas necesarias. Por eso aparecen 14 warnings — todos esos van a estar sucediendo una y otra vez y está bien."
 
-## 7. Resultados de la simulación
+## Warm-up Period
 
-### SQL
+Cuando E+ arranca una simulación, **inicializa todas las temperaturas a 23 °C** — un valor fijo, arbitrario.
 
-- EnergyPlus guarda resultados en una **base de datos SQL** estructurada
-- Eficiente: descompone fechas en componentes (día, mes, hora) en vez de repetir fechas completas
-- Para acceder se necesita una interfaz — no se puede abrir como texto plano
-- El profesor escribió un **paquete en Python** (`ear_tools`) que lee directamente del SQL, ahorrando pasos
+Como en una simulación dependiente del tiempo la condición inicial importa mucho (sobre todo con masa térmica), E+ **repite el primer día** hasta que el cambio de temperatura entre repeticiones cae bajo un criterio de convergencia (~0.1 °C).
 
-### CSV
+Esquemáticamente:
 
-- Se puede generar desde el SQL pero el formato de Open Studio es "medio feo"
-- Requiere pedirlo explícitamente (measure Create CSV Output)
-- No confundir CSV con Excel — CSV es un archivo de texto separado por comas
+1. Día 1 inicializado a 23 °C → termina en, p. ej., 25 °C.
+2. Repetir día 1 con 25 °C → termina en 24.5 °C.
+3. Repetir con 24.5 °C → termina en 24.4 °C → converge.
+4. Solo entonces avanza al día 2.
 
-### Reporte HTML
+> "Estoy haciendo que se le olvide la condición inicial de 23 °C. Cuántos días lo tuvo que hacer hasta alcanzar el criterio de convergencia."
 
-- Open Studio genera automáticamente un reporte HTML con métricas generales
-- Pensado para cumplimiento de estándares ASHRAE
-- Incluye site source factors, consumo por área, etc.
+### Implicación crítica: el día de inicio importa
 
----
+La edificación tiene **memoria del clima reciente** (días, no semanas). El primer día simulado **no tiene** esa memoria correctamente — solo recuerda repeticiones del mismo día.
 
-## 8. Site Source Factors
+**Regla práctica**: si comparas varias simulaciones (caso base vs. variantes), **arranca todas el mismo día**. Una que empieza el 1 de enero no es comparable con una que empieza el 1 de febrero — la edificación recuerda climas distintos.
 
-Relación entre la energía consumida en el **sitio** (edificación) y la energía requerida en la **fuente** (planta generadora), contabilizando pérdidas de generación y transmisión.
+Detalle en [[../concepts/Warm-up-Period]].
 
-- En EE.UU., electricidad tiene factor ~3× (se pierde 2/3 de la energía entre planta y edificio)
-- Usado para análisis de ciclo de vida y definiciones de edificaciones **Net Zero**
-- **México no tiene site source factors** oficiales — solo factores de transmisión del sistema eléctrico nacional, faltan eficiencias de planta
-- No depende de la edificación, sino de la infraestructura energética del país
+## Shadow Update
 
----
+E+ no recalcula sombras en cada paso temporal. Por default lo hace **cada 20 días** (visible en el `.err`):
 
-## 9. Masa térmica (ampliación)
+```
+Updating Shadowing Calculations, Start Date=February 03
+Updating Shadowing Calculations, Start Date=February 22
+```
 
-**Definición:** capacidad de un material para almacenar energía térmica.
+La aproximación es razonable para análisis térmico (la trayectoria solar cambia poco día a día). Pero **no es ideal para iluminación natural** — Radiance es mejor para eso (recalcula cada hora con backward ray tracing).
 
-**Fórmula por unidad de área:**
+Detalle en [[../concepts/Calculo-Sombramientos]].
 
-> Masa_térmica = ρ × c × L
+## Salidas de Energy Plus
 
-Donde:
-- ρ = densidad [kg/m³]
-- c = calor específico [J/(kg·K)]
-- L = espesor [m]
-- **Unidades resultantes:** J/(m²·K)
+E+ produce los resultados en varios formatos en paralelo:
 
-Al multiplicar por el área del muro → **J/K** = cuánta energía se necesita para elevar la temperatura de todo el material 1 K.
+| Formato | Archivo | Uso |
+|---------|---------|-----|
+| **SQL** | `eplusout.sql` | Análisis con scripts (eficiente) |
+| **CSV** | `eplusout.csv` | Excel (formato "medio feo") |
+| **HTML** | `eplustbl.htm` | Reporte para ASHRAE/LCA |
+| **ERR** | `eplusout.err` | Mensajes de simulación |
 
-**Rangos de densidad:**
-- Poliestireno expandido (EPS): ~35 kg/m³
-- Concreto alta densidad: ~2500 kg/m³
-- Factor de ~70× → el concreto almacena ~70 veces más energía por volumen
+El **SQL** es el formato preferido para postprocesamiento porque normaliza los datos (descompone fechas en componentes, etc.). No se ve abriéndolo directamente — se necesita un parser.
 
-**Implicaciones:**
-- Más masa térmica → variaciones de temperatura menores (almacena y libera energía lentamente)
-- Una casa sin muebles tiene menos masa térmica → mayores oscilaciones térmicas
-- Las **particiones interiores** (cubículos, divisiones a media altura) agregan masa térmica adicional
-- Muebles, libros, y objetos en general contribuyen masa térmica al espacio
+> "Yo escribí un paquetito en Python que pueden instalar con pip y hace la lectura directa al SQL — me ahorro un paso, es mucho más rápido y tiene varias bondades."
 
----
+El paquete del profesor se introducirá formalmente en clases siguientes (probablemente 005). Detalle del formato en [[../concepts/Salida-SQL-EnergyPlus]].
 
-## 10. Condiciones de frontera (ampliación)
+### Reporte HTML y Site/Source
 
-### Todas las condiciones disponibles en EnergyPlus
+El HTML está pensado para análisis ASHRAE. Incluye una sección **Site and Source Energy** con factores de conversión de EE.UU. precargados (~3× para electricidad).
 
-| Condición | Descripción |
-|-----------|-------------|
-| **Outdoor** | Convección + radiación onda corta + radiación onda larga (cielo, ground, aire, objetos) |
-| **Surface/Interzone** | Flujo entre dos zonas adyacentes |
-| **Adiabatic** | Flujo de calor = 0 en la cara exterior |
-| **Ground** | Temperatura del suelo |
-| **Other Side Coefficients** | Temperatura constante definida por el usuario |
+> "México **no tiene** site source factors completos. Existen factores del Sistema Eléctrico Nacional, pero solo de transmisión — nos faltan los de eficiencia de plantas. México está en pañalitos."
 
-### Combinaciones con Sun/Wind Exposure
+Tesis mencionada de **Nachito** (egresado del IER) sobre las múltiples definiciones de edificaciones de energía cero.
 
-Se puede tener condición **Outdoor** pero desactivar la exposición al sol y/o al viento:
+Detalle en [[../concepts/Site-Source-Factor]].
 
-| Caso | Sol | Viento | Ejemplo de uso |
-|------|-----|--------|----------------|
-| Outdoor completo | Sí | Sí | Fachada normal |
-| Outdoor sin sol | No | Sí | Superficie sombreada permanentemente por edificio adyacente |
-| Outdoor sin sol ni viento | No | No | **Estacionamiento subterráneo**: tiene aire (convección) pero no sol ni viento directo |
+## Construction Sets
 
-**Aplicación más común de "no sun":** pisos con estacionamiento subterráneo — no se dibuja el estacionamiento como zona térmica sino que se le quita la exposición al sol al piso, manteniendo convección. La suposición es que la temperatura del aire del estacionamiento es la temperatura exterior.
+El tema central de la segunda mitad. Procedimiento detallado en [[../procedures/Configurar-Construction-Set]]. Resumen:
 
----
+### Qué es
 
-## Conceptos clave
+Plantilla que mapea automáticamente una construction a cada superficie según:
 
-- **[[Sistemas-Constructivos]]** — Construction Sets como agrupación eficiente
-- **[[Condiciones-de-Frontera]]** — combinaciones con sun/wind exposure, nuevas condiciones
-- **[[Masa-Termica]]** — ρ × c × L, efecto estabilizador en temperatura interior
-- **[[Warm-up-Period]]** — convergencia a estado oscilatorio permanente
+- **Tipo de superficie** (Wall, Roof, Floor)
+- **Condición de frontera** (Outdoors, Surface, Ground, Adiabatic)
 
-Conceptos previos referenciados: [[Balance-de-Calor]], [[Zona-Termica]], [[Simulacion-Energetica]], [[Absorptancia-Solar]]
+Slots típicos:
 
-## Herramientas mencionadas
+| Slot | Aplica a |
+|------|----------|
+| Exterior Surface — Wall | Muros con Outdoors |
+| Exterior Surface — Roof | Techos con Outdoors |
+| Interior Surface — Wall | Muros con Surface (interzona) |
+| Ground Contact — Floor | Pisos con Ground |
+| Adiabatic — Floor | Pisos con Adiabatic |
+| Sub Surface — Window / Door | Sub-superficies |
 
-[[Open-Studio]] · [[EnergyPlus]] · [[Python]] · Notepad · Radiance
+### Cómo se usa
+
+1. Crear el Construction Set en Construction → Construction Sets.
+2. Llenar slots arrastrando constructions desde My Model.
+3. **Asignar el set a la edificación** desde Facility → Default Construction Set.
+4. Verificar en Spaces → Surfaces que las constructions aparezcan en **verde** (default heredado).
+
+### Defaults vs sobreescritura local
+
+- **Verde** = construction viene del Construction Set. Cambia automáticamente si cambias el set.
+- **Sin color (negra)** = construction sobreescrita localmente. Independiente del set.
+
+Detalle en [[../concepts/Construction-Set]].
+
+## Pestaña Facility — controles globales
+
+La pestaña Facility permite además:
+
+- **Rotar la edificación respecto al norte** (campo `North Axis`) sin tocar la geometría dibujada — útil para estudios paramétricos de orientación.
+- Asignar **Default Schedule Set** (análogo a Construction Set para horarios — no se usa en el curso aún).
+- Asignar **Default Space Type**.
+
+## Sun Exposure y Wind Exposure
+
+En la pestaña Spaces → Surfaces, dos columnas adicionales para superficies con condición Outdoors:
+
+- **Sun Exposure** — `SunExposed` o `NoSun`.
+- **Wind Exposure** — `WindExposed` o `NoWind`.
+
+Combinaciones posibles:
+
+| Caso típico | Sun | Wind | Comentario |
+|-------------|-----|------|------------|
+| Muro o techo expuesto | SunExposed | WindExposed | Default |
+| **Estacionamiento subterráneo** (techo del estacionamiento = piso del edificio) | NoSun | WindExposed | Aire del estacionamiento, sin sol |
+| Edificios muy pegados sin espacio entre ellos | NoSun | NoWind | Cuando uno no quiere modelar el vecino como geometría |
+| Caverna / sótano técnico | NoSun | NoWind | Sin convección al ambiente |
+
+> "Donde más se usa es en pisos que tienen estacionamiento subterráneo. No tengo cielo, no tengo exposición al sol, pero sí tengo convección. Es lo más común — un edificio con un estacionamiento de aire en lugar de simularlo como zona térmica."
+
+Es una caricatura: la temperatura del aire del estacionamiento se asume = T_amb del EPW. Imperfecto pero pragmático.
+
+## Particiones interiores como masa térmica
+
+Open Studio permite agregar **particiones internas** (paredes ligeras, cubículos, mobiliario virtual) que **no separan zonas** pero sí **agregan masa térmica al modelo**.
+
+> "Esa idea de que las casas abandonadas son frías es porque no hay masa térmica. La masa térmica permite almacenar energía y luego liberarla lentamente. Una casa sin muebles tiene menos masa térmica — los muebles, libros, todo lo que esté ahí genera masa térmica y eso permite que las variaciones de temperatura sean menores."
+
+En E+ esto se representa con el objeto `InternalMass`. Útil para:
+
+- Modelar mobiliario sin dibujarlo.
+- Modelar cubículos en oficinas (paredes ligeras a media altura).
+- Compensar masa "perdida" cuando se simplifica un sistema constructivo heterogéneo.
+
+Ver [[../concepts/Masa-Termica]].
+
+## Tip — colocar la edificación cerca del origen
+
+Detalle de UX que ahorra tiempo:
+
+> "Coloquen su casita siempre lo más cerca del 0,0, porque luego queda muy lejos del 0,0 y no puedo hacer mucho zoom."
+
+Si se dibujó sobre el mapa de OpenStreetMap (clase 003), las coordenadas pueden quedar lejos del origen y el zoom del preview 3D no funciona bien. Si pasa: redibujar cerca del origen, o usar un measure que reposicione la geometría.
+
+## Tarea de la semana
+
+> **Dos zonas térmicas** con **tres sistemas constructivos** distintos (sin ventanas todavía). El profesor enviará el esquema con medidas y alturas en la tarde-noche.
+>
+> Adicional: **pedir datos** al simulador (output variables) y empezar a **analizar series temporales con pandas**.
+
+Cálculo de volumen de datos esperado:
+
+- 2 zonas térmicas
+- Paso temporal de 10 minutos → 144 datos/día
+- Año completo → ~52,560 datos/zona/variable
+- Múltiples variables → cientos de miles de filas → **pandas obligado**
+
+Próxima clase: introducción al análisis con Python.
+
+## Otros temas mencionados
+
+### Versionado de Open Studio
+
+> "Las versiones nuevas son capaces de abrir versiones anteriores, pero versiones anteriores no son capaces de abrir versiones nuevas."
+
+El profesor descubre durante la clase que tiene una versión vieja de Open Studio (3.10) y los estudiantes pueden tener 3.11. Tiene que actualizar para abrir la tarea. Refuerzo de la regla del grupo: **todos en la misma versión**.
+
+### Comunicación asíncrona
+
+El profesor revisa pendientes a las 22-23 h, a veces madrugada. Anima al grupo a usar el chat sin pena por la hora.
+
+> "Las comunicaciones asíncronas no son el futuro, son el presente. Aprendan a plantear un problema de manera adecuada en tres minutos."
+
+### Classroom — feedback con video
+
+Google Classroom permite responder con **mensajes de voz** o **screen recordings**. El profesor planea usarlos para retroalimentar tareas. Anima al grupo a usar Classroom porque "permite ese tipo de interacciones que están a tres clicks de alcance".
+
+## Conceptos derivados (referencias)
+
+Conceptos nuevos introducidos:
+
+- [[../concepts/Mensajes-EnergyPlus]] — Severe vs Warning, lectura del `.err`
+- [[../concepts/Construction-Set]] — plantilla de asignación masiva
+- [[../concepts/Measures]] — scripts que modifican OSM/IDF
+- [[../concepts/Warm-up-Period]] — convergencia de la condición inicial
+- [[../concepts/Calculo-Sombramientos]] — actualización cada 20 días
+- [[../concepts/Salida-SQL-EnergyPlus]] — formatos de salida
+- [[../concepts/Site-Source-Factor]] — energía sitio vs fuente
+
+Conceptos profundizados:
+
+- [[../concepts/Masa-Termica]] — particiones interiores y mobiliario como masa térmica
+- [[../concepts/Condiciones-de-Frontera]] — Sun y Wind Exposure como dimensiones independientes
 
 ## Conexiones
 
-- **Anterior:** [[003-MiPrimeraSimulacion]] — Primer cubo, asignación manual de materiales y construcciones
-- **Siguiente:** [[005-AnalisisSimulacionesPython]] — Análisis de datos con Python, lectura de SQL
+- ← **Anterior:** [[003-MiPrimeraSimulacion]] — primer modelo, primer Run
+- → **Siguiente:** _005-AnalisisSimulacionesPython_ — análisis con pandas, paquete del profesor para leer SQL
+- → Procedimientos clave:
+  - [[../procedures/Leer-Archivo-ERR]]
+  - [[../procedures/Configurar-Construction-Set]]
+  - [[../procedures/Debuggear-Simulacion-OpenStudio]]
 
-## Tarea asignada
+## Recursos mencionados
 
-- Dos zonas térmicas (dos "casitas") con medidas y alturas dadas por el profesor
-- **Sin ventanas** todavía — se verán en la siguiente sesión
-- Tres sistemas constructivos diferentes
-- Usar Construction Set para asignar
-- La simulación debe funcionar correctamente (revisar ERR)
-- Pedir datos de temperatura por zona para análisis posterior con Python (144 datos/día por zona a paso temporal de 10 min → 52,560 datos/zona/año)
+- **NREL BCL** (Building Component Library) — repositorio público de measures.
+- **Tesis de Nachito** (egresado IER, Acapulco) — sobre definiciones de edificaciones de energía cero.
+- **CFE** — fuente de consumo eléctrico en México (limitada — solo refleja transmisión).
+- **Sistema Eléctrico Nacional** — factores oficiales en México (incompletos).
+- **DB Browser for SQLite** — para inspeccionar el SQL manualmente (no se nombró pero es la herramienta estándar).

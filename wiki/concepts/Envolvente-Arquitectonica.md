@@ -1,24 +1,48 @@
+---
+title: Envolvente Arquitectónica
+type: concepto
+tags: [concepto, geometria, edificacion]
+aliases: [envolvente, volumetría]
+clases: [001, 002]
+updated: 2026-05-02
+---
+
 # Envolvente Arquitectónica
 
-Conjunto de superficies que delimitan una edificación y la separan del exterior: muros, techo, piso y ventanas. Es a través de la envolvente que ocurre la transferencia de calor entre el interior y el exterior.
+## Definición
 
-## Ideas clave
+Conjunto de superficies que separan el interior de una edificación del exterior (o de otras zonas): muros, techo, piso, ventanas, puertas. Es la geometría sobre la que se resuelve el [[Balance-de-Calor]].
 
-- Cada superficie de la envolvente tiene asignado un **sistema constructivo** (capas de materiales con propiedades térmicas)
-- Las superficies tienen **condiciones de frontera** que las conectan con el exterior, con otros espacios, o las definen como adiabáticas
-- En Energy Plus, la envolvente se define en el archivo IDF mediante objetos de geometría, materiales y construcciones
-- Open Studio permite previsualizar la geometría de la envolvente (Energy Plus no)
-- La volumetría se dibuja en planta en el editor de geometrías de Open Studio
+El profesor también la llama **volumetría**.
 
-## Restricciones de modelado
+## Rol en una simulación
 
-- **Solo superficies planas** — no hay líneas curvas ni ventanas circulares (factor de vista propio = 0)
-- **Transferencia de calor 1D** — perpendicular a cada superficie; no se modela flujo lateral
-- **Temperatura uniforme por superficie** — cada muro tiene una temperatura equivalente (promedio ponderado)
-- Los modelos son siempre "caricaturas" — se pueden dividir o combinar superficies según la física del problema
-- Existe el objeto **masa térmica** para representar elementos no modelados en la geometría (ej. trabes interiores)
+1. Define **qué superficies existen** y cómo están orientadas (orientación = clave para radiación solar).
+2. Cada superficie recibe un **sistema constructivo** ([[Sistemas-Constructivos]]) que determina sus propiedades térmicas.
+3. Cada superficie tiene una **condición de frontera** ([[Condiciones-de-Frontera]]) que la conecta con su entorno (otra zona, exterior, suelo, adiabática).
+4. El motor calcula la transferencia de calor a través de cada superficie en cada paso de tiempo.
 
-## Aparece en
+## Restricciones de Energy Plus
 
-- [[001-IntroduccionTallerIDB]] — Descripción de cómo se modela la envolvente en Energy Plus y Open Studio
-- [[002-ConceptosBasicosBalancesCalor]] — Restricciones 1D, superficies planas, modelado como "caricatura"
+Independientemente de la GUI, **Energy Plus impone**:
+
+- **Solo líneas rectas y superficies planas.** No hay líneas curvas, no hay superficies redondeadas, no hay ventanas circulares. Razón: el [[Factor-de-Vista]] de una superficie consigo misma se asume cero, lo que solo es válido para superficies planas.
+- **Polígonos planos exclusivamente.** La envolvente se construye como un conjunto de polígonos planos cerrando un volumen.
+- **Flujo de calor 1D perpendicular** a cada superficie (ver [[../tools/EnergyPlus]] para implicaciones).
+
+## Limitaciones en este curso
+
+Además de lo que impone Energy Plus, se usan **geometrías simples** (cubos con ventanas):
+
+- Open Studio nativo no permite geometrías complejas.
+- Convertir el curso en clase de dibujo aleja del objetivo.
+- Las geometrías reales (techos a doble agua, volúmenes complejos) se modelan en programas de paga (Design Builder, Rhino+LadyBug, SketchUp) y en la siguiente materia.
+
+## Vecinos / sombreamiento
+
+En las simulaciones se pueden agregar **edificaciones vecinas** como objetos de sombreamiento. Decisión a tomar: incluirlos como geometría que sombrea, o representarlos como condición de frontera de la superficie afectada.
+
+## Clases relacionadas
+
+- [[../classes/001-IntroduccionTallerIDB]] — introducción a la envolvente y al editor de geometrías de Open Studio
+- [[../classes/002-ConceptosBasicosBalancesCalor]] — restricción de líneas rectas, flujo 1D perpendicular

@@ -1,239 +1,297 @@
+---
+title: 003 — Mi Primera Simulación
+type: clase
+clase: 003
+profesor: Guillermo Barrios del Valle
+fuente: raw/videos/003_MiPrimeraSimulacion.md
+fecha_ingesta: 2026-05-02
+tags: [clase, openstudio, primera-simulacion, balance-aire, mezclado-perfecto, epw]
+aliases: [Clase 003]
+---
+
 # 003 — Mi Primera Simulación
 
 ## Metadatos
-- **Clase:** 003
-- **Título:** Mi Primera Simulación
-- **Duración:** ~1h 22min
-- **Profesor:** Guillermo Barrios del Valle
-- **Temas:** balance de calor interior, modelo de mezclado perfecto, editor de geometría FloorSpaceJS, espacios vs zonas térmicas, condiciones de frontera visuales, materiales, sistemas constructivos, primera simulación completa
 
----
+- **Clase:** 003
+- **Profesor:** Guillermo Barrios del Valle
+- **Fuente:** `raw/videos/003_MiPrimeraSimulacion.md`
+- **Tipo:** Clase mixta — recap teórico (~30%) + tour práctico de Open Studio (~70%)
 
 ## Resumen
 
-Clase que cierra la parte teórica con el balance de calor en la superficie interior y el modelo de mezclado perfecto, y luego pasa a la práctica: crear la primera simulación completa en Open Studio, desde dibujar la geometría hasta ejecutar la simulación.
+Primera clase práctica del taller. Cierra el marco teórico iniciado en 001 y 002 con dos piezas que faltaban — el **balance de calor en la superficie interior** y el **balance de aire de la zona térmica** — y la suposición central que los conecta: **mezclado perfecto** del aire (toda la zona, una sola temperatura). En la segunda mitad, el profesor demuestra **end-to-end** la creación de un primer modelo en Open Studio: dibujo de geometría en FloorspaceJS, espacios y zonas térmicas, condiciones de frontera por color, descarga y asignación de un EPW desde OneBuilding, definición de un material y una construction, asignación a superficies, piso adiabático, y `Run`. Cierra anunciando la tarea: replicar el procedimiento con un cubo de 3×3×3 m.
 
-### Balance de calor en la superficie interior
+Aparecen además dos hilos transversales del curso: la **narrativa computacional** (versionado de OSMs, estructura de carpetas, ZIP completos) y el principio de **caricatura computacional** — Energy Plus es una caricatura de la realidad, lo importante es saber qué se está descartando.
 
-La superficie interior tiene componentes similares a la exterior pero con diferencias importantes:
+## Objetivos de aprendizaje
 
-#### 1. Convección interior
+- Plantear el [[../concepts/Balance-de-Calor]] en la **superficie interior** y entender qué difiere respecto al exterior.
+- Entender la suposición de [[../concepts/Mezclado-Perfecto]] y sus implicaciones.
+- Distinguir [[../concepts/Espacio-vs-ZonaTermica|espacio y zona térmica]] en Open Studio.
+- Conocer los cuatro tipos de [[../concepts/Condiciones-de-Frontera]] (Outdoor, Surface, Ground, Adiabática) y sus colores en Render by Boundary.
+- Conocer los tres [[../concepts/Tipos-Superficie]] (Wall, Roof, Floor) y por qué importan para la convección.
+- Entender qué es una [[../concepts/Subsuperficie]] (ventana, puerta) y la jerarquía superficie → sub-superficie.
+- Conocer la suposición de [[../concepts/Radiacion-Interior-Distribuida]] y el modelo `FullInteriorAndExterior`.
+- Ser capaz de seguir el procedimiento [[../procedures/Crear-Primera-Simulacion-OpenStudio]] de principio a fin.
 
-> q_conv_int = h_conv_int × (T_superficie_int - T_indoor)
+## Recapitulación de las clases anteriores
 
-El coeficiente convectivo depende del **tipo de superficie** (techo, piso, muro) por la dirección de la convección natural — el calor sube, por lo que techos, pisos y muros tienen diferentes coeficientes.
+Antes de entrar a Open Studio, el profesor recapitula y completa el balance:
 
-#### 2. Radiación de onda larga interior
+1. **Balance en la superficie exterior** (visto en [[002-ConceptosBasicosBalancesCalor]]): tres componentes — radiación de onda corta absorbida, radiación de onda larga (con ground/sky/air/surroundings) y convección — igualados a la conducción `−k ∂T/∂x|_{x=0}`.
+2. **Conducción a través del muro** (1D, dependiente del tiempo, con masa térmica):
+   $$
+   \rho \, c_p \, \frac{\partial T}{\partial t} = k \, \frac{\partial^2 T}{\partial x^2}
+   $$
+   En sistemas constructivos multi-capa, cada capa tiene su `ρᵢ`, `cₚ,ᵢ`, `kᵢ`. Se discretiza y se resuelve con CTF (default) o Diferencias Finitas.
+3. **Las "caricaturas" se acumulan** — solo líneas rectas, flujo 1D perpendicular, material homogéneo. Ver [[../concepts/Caricatura-Computacional]].
 
-Intercambio radiativo **solo entre superficies interiores** (no cielo, ground ni aire como en el exterior). La radiación de onda larga **no atraviesa vidrios** → las superficies interiores solo se "ven" entre sí.
+## Balance de calor en la superficie interior
 
-- Depende de **factores de vista** entre superficies y **emitancia** de los materiales
-- Emitancia típica: materiales de construcción ~0.9; aluminio pulido ~0.1; vidrio baja emitancia ~0.01
-- Puede ser el **60-70% de la transferencia de calor** en un muro — es un mecanismo dominante
-- Si se inhibe en la simulación, los resultados cambian mucho
-- Es una **estrategia de climatización**: una pared fría enfría radiativamente a las personas y objetos cercanos (proporcional a ΔT⁴, selectivo y potente)
+Pieza nueva: la condición de frontera en la cara **interior** del muro tiene tres componentes paralelos al exterior, pero con diferencias importantes:
 
-**Ejemplo cotidiano:** sentir el calor al pasar junto a un muro de piedra caliente → es radiación, no convección. El traga fuegos en un semáforo: la llama está arriba de 700 K (emite en el visible), el calor que sentimos a través del vidrio es radiación térmica.
+$$
+q''_{conv,i} + q''_{LWR,i} + q''_{SW,i} = -k \frac{\partial T}{\partial x}\bigg|_{x=L}
+$$
 
-#### 3. Radiación de onda corta interior
+### Componente 1 — Convección con el aire interior
 
-Luz solar que entra por ventanas + equipos/luces que emiten en el visible. EnergyPlus la **distribuye uniformemente** en todas las superficies del espacio (simplificación — no puede apuntar un proyector a un muro específico).
+$$
+q''_{conv,i} = h_{c,i} \, (T_s - T_I)
+$$
 
-- Modelo por defecto: radiación solar difusa y de equipos se reparte a todas las superficies
-- Modelo "full interior exterior": proyecta la directa al piso, distribuye la difusa
-- Equipos (ej. proyector de 900W): el 90% es luz visible, 10% calor → se distribuye a todas las superficies
+donde:
+- `T_s` es la temperatura de la superficie interior.
+- `T_I` es la **temperatura del aire indoor** de la zona — la incógnita que finalmente le interesa al diseñador.
+- `h_{c,i}` depende del tipo de superficie ([[../concepts/Tipos-Superficie]]) — un techo no tiene el mismo `h_c` que un piso.
 
-### Modelo de mezclado perfecto (well-mixed)
+### Componente 2 — Radiación de onda larga (LWR) interior
 
-EnergyPlus toma **todo** el flujo de calor que entra a la zona térmica en cada paso temporal (conducción por cada muro, radiación por ventanas, personas, infiltración) y lo mezcla instantáneamente con TODO el aire:
+A diferencia del exterior, la onda larga **interior** intercambia **solo entre las superficies del cuarto**. Las ventanas no participan: la radiación de onda larga **no atraviesa el vidrio** (el vidrio es opaco a IR). Aunque haya ventana en el muro, el balance LWR se cierra entre las paredes, piso y techo del cuarto.
 
-> **Toda la zona tiene UNA sola temperatura (T_indoor)**
+$$
+q''_{LWR,i} = \sum_j \varepsilon_j \, \sigma \, F_{s \to j} \, (T_j^4 - T_s^4)
+$$
 
-**Limitaciones:**
-- No es realidad — hay gradientes de temperatura, plumas térmicas, estratificación vertical
-- Peor aproximación cuanto más grande sea el espacio
-- No distingue temperatura cerca de una ventana vs. centro del cuarto
-- Para validar experimentalmente: medir en múltiples puntos y promediar
+donde la suma corre sobre todas las superficies internas que **ven** a la superficie `s` (el [[../concepts/Factor-de-Vista]] vale 0 para superficies paralelas que están detrás).
 
-**Mediciones de confort térmico:** se debería medir temperatura a la altura de tobillos, cadera y pecho (sentado o parado — las alturas cambian). Estas pueden ser diferentes por plumas térmicas y ráfagas de aire acondicionado.
+> **Insight:** este intercambio radiativo es **instantáneo** y **muy potente** — proporcional a `(T⁴ − T_s⁴)`. Ejemplos del profesor: pasar al lado de un muro de piedra caliente; sentir el calor del tragafuegos de un semáforo (>700 K); el calor que se siente cuando una pared está fría enfrente. Una estrategia bioclimática puede usar este intercambio (paredes frías como sumidero radiativo).
 
----
+### Componente 3 — Radiación de onda corta sobre la cara interior
 
-## Primera simulación en Open Studio — Paso a paso
+A diferencia del exterior (donde es radiación solar global), la onda corta interior **viene de fuentes que emiten luz visible**:
 
-### 1. Editor de geometría (FloorSpaceJS)
+- Radiación solar que **entra por una ventana**.
+- Luminarias y proyectores (parte de su potencia es luz visible; el resto, calor convectivo).
 
-Open Studio incluye un editor de geometría 2D integrado llamado **FloorSpaceJS** (JavaScript):
+E+ aplica una caricatura clave aquí: la radiación se **distribuye uniformemente**, y la **directa se asume al piso** por default. Detalle en [[../concepts/Radiacion-Interior-Distribuida]].
 
-- Pestaña **Geometry** → **Editor** para dibujar en planta
-- Pestaña **Geometry** → **Preview** (3D View) para visualizar el modelo
-- Dibujo en planta 2D → **extrusión automática** a 3D
-- Conectado a **OpenStreetMap** para referencia geográfica (buscar dirección)
-- Puede importar imágenes de planta y escalarlas
-- **Grid configurable**: 1m, 0.5m, 0.1m — solo se puede dibujar en el grid
-- Herramientas: rectángulo, polígono, borrador
-- Muestra dimensiones y área mientras se dibuja
-- Formato: JSON (FloorSpaceJS)
+## Balance de aire en la zona térmica
 
-Después de dibujar, se hace **Merge with Current OSM** para transferir la geometría al modelo.
+Es el balance que cierra el problema y produce `T_I`, la temperatura del aire interior. Se construye sumando todas las contribuciones que entran/salen del volumen de aire:
 
-### 2. Stories (pisos)
+- Convección con cada superficie interior (suma de `h_{c,i} A_i (T_s − T_I)`).
+- Radiación que entra por ventanas y se queda en el cuarto.
+- Cargas internas — personas, equipos, luces (no se modelan en el curso).
+- Infiltración / ventilación — entrada de aire exterior con su propia temperatura y humedad (no se modela en el curso). Conservación de masa obliga a tratar también la humedad cuando entra aire seco/húmedo.
 
-- Cada **Story** tiene una altura floor-to-ceiling (default: 2.43m)
-- Se puede cambiar (ej. 3m)
-- Se pueden renombrar (ej. "PB" para planta baja)
-- Todos los espacios creados dentro de un story heredan su altura
+> "No voy a hablar de 'va a agregar' o 'va a quitar' porque puede entrar más frío, más caliente, o a la misma temperatura. Pero la masa también cuenta — tiene que haber conservación de masa."
 
-### 3. Espacios vs Zonas térmicas
+### Suposición clave: mezclado perfecto
 
-| Concepto | Origen | Descripción |
-|----------|--------|-------------|
-| **Espacio** | Open Studio | Volumen geométrico, puede tener tipo de uso (ej. centro de cómputo). No existe en EnergyPlus |
-| **Zona térmica** | EnergyPlus | Donde se resuelve la temperatura del aire. Es lo que importa para la simulación |
+Toda esa suma se aplica a un volumen de aire con **una sola temperatura instantánea**. No hay estratificación, no hay plumas, no hay gradiente. Cada paso temporal:
 
-- En casos simples: un espacio → una zona térmica
-- Los nombres **deben ser diferentes** (ej. espacio: "s:Norte", zona: "Norte")
-- Zonas térmicas se crean en la pestaña Thermal Zones (botón verde +)
-- Se asignan a los espacios en la pestaña Spaces
+1. E+ junta todos los flujos de calor que cruzaron las fronteras de la zona.
+2. Los reparte uniformemente en la masa de aire.
+3. Calcula la nueva `T_I`.
 
-**Reglas de nombres:**
-- Usar nombres descriptivos: Cocina, Baño, LivingRoom, Norte, Sur
-- **NO** usar ThermalZone1, ThermalZone2 (una semana después no sabrás qué es)
-- **NO** usar espacios en nombres de zonas (causa problemas en Python)
-- Evitar acentos y eñes (pueden causar errores en algunas computadoras)
+Detalle y consecuencias prácticas en [[../concepts/Mezclado-Perfecto]].
 
-### 4. Tipos de superficie y condiciones de frontera
+> "Energy Plus va a agarrar ese flujo de calor y lo va a agarrar todo el aire y lo va a mezclar perfectamente. Entre más grande sea mi espacio, más alejado voy a estar de esa suposición."
 
-**Render by Surface Type:**
+### Mediciones reales para comparar
 
-| Color | Tipo | Nota |
-|-------|------|------|
-| Amarillo | Muro (Wall) | Coeficiente convectivo de muro |
-| Rojo | Techo (Roof) | Coeficiente convectivo de techo |
-| Gris | Piso (Floor) | Coeficiente convectivo de piso |
+Si se quiere comparar simulación vs. medición experimental, lo ideal es medir a varias alturas (tobillos, cadera, pecho — sentado y parado) y promediar. Una sola medición puntual no se compara directamente con la "T_I" reportada por E+.
 
-Los tipos importan porque el **coeficiente convectivo** depende de la inclinación de la superficie (convección natural: el calor sube).
+## Acotación: qué se simula en el curso
 
-**Render by Boundary Condition:**
+El profesor reitera las simplificaciones que se mantienen vigentes:
+
+- **Sin ventilación natural ni mecánica.** Open Studio expone poco de Airflow Network, y resolverlo bien requiere mucho más esfuerzo.
+- **Sin cargas térmicas** — sin personas, sin equipos, sin iluminación.
+- **Piso adiabático** — no se modela el ground.
+- Sí se hace: ventanas, protecciones (aleros), sistemas constructivos.
+
+Es **un cascarón sellado**. Los valores absolutos de temperatura no son realistas, pero el **orden** entre estrategias se preserva — ver [[../concepts/Caricatura-Computacional]].
+
+## Open Studio — tour práctico
+
+### Open Studio Model (OSM) y el hash anti-plagio
+
+El archivo `.osm` es **texto plano**. Es una reescritura del IDF de Energy Plus — los mismos objetos, con sintaxis distinta.
+
+Detalle no obvio: cada objeto que crea Open Studio recibe un **hash** (cadena alfanumérica única) como nombre interno. **El hash no se puede cambiar al renombrar un objeto.** El profesor usa esto como **detector de plagio**: si dos tareas tienen los mismos hashes, una se copió de la otra.
+
+> "No me gusta jugar al policía, pero pero sí me gusta cuestionar."
+
+### El folder hermano del OSM
+
+Al guardar `001_volumetria.osm`, Open Studio crea junto a él un **folder con el mismo nombre** (`001_volumetria/`). Reglas:
+
+- En cada `Run` ese folder se **borra y se regenera** — no guardar nada propio ahí.
+- Sí contiene la **configuración de measures** del OSM. Compartir solo el `.osm` pierde los measures.
+- Para entregar la tarea: **ZIP del proyecto completo** — ver [[../procedures/Estructura-Proyecto-Simulacion]].
+
+### Editores de geometría
+
+Open Studio puede usar varios editores de geometría:
+
+| Editor | Estado en el curso |
+|--------|--------------------|
+| **FloorspaceJS** (integrado, JS, gratis) | El que se usa |
+| **SketchUp** (con plugin) | Excelente, pero SketchUp ya es de paga |
+| **Rhino** | Profesional, soportado |
+| **Blender** | Soportado |
+| **Design Builder** (GUI propia) | Programa aparte; ya trae editor |
+
+FloorspaceJS guarda en formato **JSON**. Permite buscar la ubicación en un mapa de **OpenStreetMap** y dibujar la base sobre la imagen como referencia.
+
+### Flujo de dibujo en FloorspaceJS
+
+1. Geometry → New (o Edit Floorplan).
+2. Configurar **grid** (esquina superior derecha) — típicamente 0.5 m o 1 m.
+3. Herramienta **Rectangle** o **Polygon** → dibujar la planta.
+4. Story height (panel Stories) → cambiar de 2.43 m default a la altura deseada (3 m en el ejemplo).
+5. Renombrar espacios — convención `S:Norte`, `S:Sur` para distinguir de zonas térmicas (ver [[../concepts/Espacio-vs-ZonaTermica]]).
+6. **Merge with Current OSM** → la geometría pasa al modelo principal.
+7. Pestaña 3D View → Refresh para ver el resultado.
+
+### Render by Boundary — el catálogo de colores
+
+En el preview 3D, el selector **Render By → Boundary Conditions** colorea las superficies por su tipo de condición:
 
 | Color | Condición | Significado |
 |-------|-----------|-------------|
-| **Azul** | Outdoor | Expuesta a sol y viento — balance exterior completo |
-| **Verde** | Surface / Interzone | Conectada a zona adyacente — flujo de calor pasa entre zonas |
-| **Rojo** | Adiabatic | Sin transferencia de calor (flujo = 0) |
-| **Otro** | Ground | Temperatura del suelo asociada |
+| **Azul** | Outdoors | Expuesto al sol y al viento — radiación incidente, convección, LWR con ground/sky/air |
+| **Verde** | Surface (interzona) | Frontera entre dos zonas térmicas — el flujo que sale por una entra a la otra |
+| **Café/marrón** | Ground | En contacto con el suelo — temperatura de ground |
+| **Rojo** | Adiabatic | Flujo cero — superficie aislada del modelo |
 
-**Condición Surface/Interzone:**
-- Cuando dos espacios se tocan (merge en el editor), la pared compartida cambia automáticamente a Surface
-- Es **un solo muro** (no doble) — el flujo que sale de un lado entra al otro
-- Esas superficies ya no tienen radiación incidente ni intercambio con el exterior
-- La condición Surface muestra con qué superficie hace "match" (ej. cara 10 ↔ cara 12)
+Detalle de cada uno en [[../concepts/Condiciones-de-Frontera]].
 
-**Error común:** si una pared compartida entre zonas queda en Outdoor → EnergyPlus calculará sol y viento donde no existen.
+### El truco de los espacios cercanos pero no pegados
 
-### 5. Aplicaciones de condiciones adiabáticas
+El profesor demuestra una sutileza: **dos espacios separados por 1 cm en el editor NO comparten condición de frontera** — Open Studio los trata como dos muros independientes hacia Outdoors. Si quiero dos cuartos vecinos que comparten muro, las paredes deben **tocarse físicamente** en FloorspaceJS (línea punteada al unir).
 
-- **Salones adyacentes** con el mismo comportamiento térmico → paredes laterales adiabáticas (no modelar vecinos)
-- **Edificio multi-piso:** pisos intermedios adiabáticos arriba y abajo → solo modelar el piso de interés
-- Solo el **último piso** (techo expuesto al sol) y **planta baja** (contacto con suelo) necesitan condiciones especiales
-- **Pasillos/corredores** que no son zonas térmicas → se convierten en shading surfaces (solo bloquean luz, no participan en transferencia de calor, no bloquean viento)
-- Si hay **A/C** abajo → ya no vale adiabático (el piso inferior tiene temperatura diferente y afecta)
+Si se dejan separadas:
 
-### 6. Definición de materiales
+- E+ **sí** detecta que un objeto bloquea radiación al otro (sombreamiento).
+- Pero E+ **no** conecta el calor — la transferencia que sale del muro va al ambiente, no al cuarto vecino.
 
-En la pestaña de materiales (icono de ladrillos), crear **Material** (con masa, no "No Mass"):
+Resultado: cosas que parecen "casi pegadas" se simulan mal. **Hay que pegar las paredes** y dejar que Open Studio convierta automáticamente Outdoor → Surface (verde).
 
-| Propiedad | Descripción | Ejemplo (CAD) |
-|-----------|-------------|---------------|
-| Roughness | Rugosidad superficial (afecta h_conv) | Medium Rough |
-| Thickness | Espesor [m] | 0.15 |
-| Conductivity | Conductividad térmica [W/m·K] | 2.4 |
-| Density | Densidad [kg/m³] | 2500 |
-| Specific Heat | Calor específico [J/kg·K] | 1400 |
-| Thermal Absorptance | Emitancia (cuerpo gris: emisividad = absorptancia) | 0.9 |
-| Solar Absorptance | Fracción de radiación solar absorbida | 0.3 (blanco) – 0.9 (negro) |
-| Visible Absorptance | Para cálculos de iluminación | ≈ Solar Absorptance |
+### Espacios vs zonas térmicas — el doble paso
 
-- Valores en **verde** = default. Al modificar, desaparece el verde.
-- Calores específicos típicos: 800–1600 J/kg·K
-- Pasar de blanco (0.3) a rojo/oscuro (0.7) **duplica** la energía solar absorbida — una de las estrategias de mayor impacto
+Aunque en el curso son 1:1, **espacio y zona térmica son objetos distintos** en Open Studio. Hay que crearlas por separado y mapearlas. Detalle en [[../concepts/Espacio-vs-ZonaTermica]].
 
-### 7. Sistemas constructivos (Construction)
+> Para 200 zonas térmicas, este paso (drag-and-drop una a una) se vuelve insoportable — la salida es **scripting con Python o Ruby** (ej. Gabi, egresada del IER, trabaja en EE.UU. desarrollando estos scripts).
 
-- Crear en la pestaña Construction
-- **Capas ordenadas de exterior a interior** (ej. concreto → tabique → yeso)
-- Arrastrar materiales desde la librería del modelo (My Model)
-- Asignar a cada superficie en la columna "Construction" de la pestaña Spaces/Surfaces
+### Forzar piso adiabático
 
-**Superficies vs Subsuperficies:**
-- **Superficies** = muros, pisos, techos (opacos)
-- **Subsuperficies** = ventanas, puertas → contenidas dentro de una superficie
-- Una ventana **no puede existir** sin un muro contenedor, ni ocupar el 100% del área
+Default: el piso queda como **Ground**. Para el curso se cambia a **Adiabatic**:
 
-### 8. Archivo de clima (EPW)
+- Pestaña Spaces → sub-pestaña Surfaces.
+- Para cada piso: columna `Outside Boundary Condition` → de `Ground` a `Adiabatic`.
 
-- Descargar de **One Building** → North America → Mexico → estado → ciudad
-- Descomprimir ZIP → el archivo EPW es el que importa
-- **Set Weather File** en Open Studio → seleccionar EPW
-- Muestra: latitud, longitud, time zone, elevación
-- Las simulaciones usan **horario civil** (no solar)
+Cuando el modelo tiene varios pisos (multi-story): **todos los pisos intermedios pueden ser adiabáticos arriba y abajo** si la temperatura es similar entre niveles. Solo el piso de planta baja toca el ground; solo el techo del último piso toca outdoors.
 
-### 9. Ejecución
+### EPW y el archivo de clima
 
-- Botón **Run** en la parte inferior de Open Studio
-- Barra de progreso hasta 100%
-- Requisitos mínimos: geometría + zonas térmicas + materiales/construcciones + EPW + condiciones de frontera correctas
+Detalle en [[../procedures/Descargar-EPW-OneBuilding]]. Resumen:
 
-### Metodología de archivos
+1. climate.onebuilding.org → ciudad → descargar ZIP.
+2. Extraer el `.epw` → mover a `EPW/` del proyecto.
+3. Pestaña **Site → Set Weather File** → seleccionar el `.epw`.
 
-```
-PrimeraSimulacion/
-├── OSM/
-│   ├── 001_cubo_volumetria.osm
-│   ├── 002_2zonas.osm
-│   └── 003_primeraSimulacion.osm
-├── EPW/
-│   └── MEX_MOR_Cuernavaca_2007-2023.epw
-└── notebooks/
-    └── ...
-```
+Las simulaciones de E+ corren en **horario civil** (uso horario), no horario solar.
 
-**Reglas:**
-- **NO** acentos, eñes ni espacios en nombres de archivos/carpetas
-- Usar CamelCase o guiones_bajos
-- **Versionado numérico:** 001, 002, 003... con nombre descriptivo
-- **Nunca borrar** versiones anteriores — puede ser necesario regresar ("practicar el desapego")
-- **Guardar como (Save As)** cada vez que se avanza → no sobreescribir
-- Compartir como **ZIP** del proyecto completo (no solo el OSM)
-- Open Studio crea una carpeta asociada con archivos temporales — no guardar cosas ahí
+### Materials y Constructions
 
-**Narrativa computacional:** el proyecto debe contar su propia historia. Al final, las últimas versiones serán las variantes bioclimáticas (cambio de color, materiales, orientación, protecciones solares).
+Diferencia clave:
 
-**Sobre el hash en OSM:** Open Studio asigna un hash único a cada objeto. Si dos archivos tienen los mismos hashes, se detecta que se copió el archivo. No se puede cambiar fácilmente.
+- **Material** = una capa con sus propiedades térmicas y un espesor.
+- **Construction** = una secuencia ordenada de materiales — de **exterior a interior**.
 
-### Tarea
+Pasos:
 
-- Cubo de **3×3×3 metros**, una zona térmica
-- Muros de **tabique**, piso y techo de **concreto** (dos sistemas constructivos, un material cada uno)
-- Un **EPW** de la ciudad del equipo
-- Condiciones de frontera: piso **adiabático**, resto **outdoor**
-- Seguir los pasos de la clase
-- Entrega: siguiente clase
+1. Pestaña Materials → sub-pestaña **Materials** (no `No Mass Materials` — esos no respetan masa térmica).
+2. Crear el material; rellenar conductivity, density, specific heat, thermal absorptance (emisividad), solar absorptance, visible absorptance.
+3. Pestaña Constructions → crear construction → arrastrar materiales en orden ext→int.
+4. Pestaña Spaces → Surfaces → asignar la construction a cada superficie (drag-and-drop desde My Model).
 
----
+> Los campos en **verde** son defaults de E+. Cuando los modificas pierden el color verde — pista visual para saber qué tocaste.
 
-## Conceptos clave
+### Tipos de superficie y `h_c`
 
-- **[[Mezclado-Perfecto]]** — suposición de EnergyPlus: todo el aire de la zona tiene una temperatura uniforme
-- **[[Emitancia]]** — fracción de radiación emitida respecto a un cuerpo negro; igual a la absorptancia térmica (cuerpo gris)
+Tres tipos: Wall, Roof, Floor. **El coeficiente convectivo depende del tipo** — un techo no tiene el mismo `h_c` que un piso. E+ aplica correlaciones distintas según inclinación. Detalle en [[../concepts/Tipos-Superficie]].
 
-Conceptos previos referenciados: [[Balance-de-Calor]], [[Zona-Termica]], [[Condiciones-de-Frontera]], [[Factor-de-Vista]], [[Absorptancia-Solar]], [[Sistemas-Constructivos]], [[Envolvente-Arquitectonica]], [[TMY]]
+### Sub-superficies (ventanas, puertas)
 
-## Herramientas mencionadas
+Ventanas y puertas son **sub-superficies** que viven dentro de un muro. No pueden ocupar el 100% del muro — hay un margen mínimo. Si en la realidad no hay muro (cafetería abierta), se crea un **muro virtual** y dentro una ventana muy grande. Detalle en [[../concepts/Subsuperficie]].
 
-[[Open-Studio]] · [[EnergyPlus]] · [[Python]] · FloorSpaceJS · OpenStreetMap · SketchUp · Blender · Revit
+## Narrativa computacional
+
+El profesor introduce una metodología que se aplicará todo el semestre:
+
+1. **Carpeta por proyecto** — sin acentos, sin eñes, sin espacios.
+2. **Sub-carpetas** mínimas: `OSM/`, `EPW/`, `notebooks/`.
+3. **Versionado numerado** de OSMs: `001_volumetria.osm`, `002_dosZonas.osm`, …
+4. **Nunca borrar** versiones anteriores. Si una rompe, regresar a la anterior.
+5. **Save As** (no Save) para cada cambio sustantivo → nueva versión.
+6. Cuando el modelo está listo como **caso base**, ramificar: `006_caso_base.osm` → variantes 007 (color), 008 (orientación), 009 (sombras), …
+7. **Entrega = ZIP del folder completo** (no solo el OSM). No usar TAR.
+
+> "Aquí es donde hay que practicar el desapego. No me sale en una hora — regrésate al paso anterior y vuelve a hacerlo."
+
+Detalle en [[../procedures/Estructura-Proyecto-Simulacion]].
+
+## Tarea de la semana
+
+> **Cubo de 3×3×3 m**, dos sistemas constructivos:
+> - **Tabique** en los 4 muros.
+> - **Concreto** en piso y techo.
+>
+> Construction de un solo material en cada caso, EPW de la ciudad escogida (asignada en clase 002), piso adiabático, sin ventanas. Ejecutar `Run` y entregar el proyecto completo en ZIP.
+
+Procedimiento detallado: [[../procedures/Crear-Primera-Simulacion-OpenStudio]].
+
+**Comunicación durante la semana:** chat del grupo. Si algo no sale, describir bien el problema y adjuntar el ZIP del proyecto. El profesor responde "en algún momento de la madrugada".
+
+## Conceptos derivados (referencias)
+
+Conceptos nuevos introducidos o profundizados:
+
+- [[../concepts/Mezclado-Perfecto]] — toda la zona, una sola temperatura
+- [[../concepts/Espacio-vs-ZonaTermica]] — distinción de Open Studio
+- [[../concepts/Caricatura-Computacional]] — principio metodológico
+- [[../concepts/Tipos-Superficie]] — Wall/Roof/Floor y dependencia de `h_c`
+- [[../concepts/Subsuperficie]] — ventanas y puertas dentro de superficies
+- [[../concepts/Radiacion-Interior-Distribuida]] — la directa al piso, la difusa repartida
+- [[../concepts/Balance-de-Calor]] — actualizado con balance interior y balance de aire
+- [[../concepts/Condiciones-de-Frontera]] — actualizado con catálogo de colores OS
 
 ## Conexiones
 
-- **Anterior:** [[002-ConceptosBasicosBalancesCalor]] — Balance exterior, TMY, documentación
-- **Siguiente:** [[004-InterpretandoMensajesConstructionSets]] — Mensajes de error y construction sets
+- ← **Anterior:** [[002-ConceptosBasicosBalancesCalor]] — fundamentos físicos
+- → **Siguiente:** _004-InterpretandoMensajesConstructionSets_ — debugging de la simulación, construction sets
+- → Procedimiento de la tarea: [[../procedures/Crear-Primera-Simulacion-OpenStudio]]
+- → Estructura de carpetas: [[../procedures/Estructura-Proyecto-Simulacion]]
+- → EPW: [[../procedures/Descargar-EPW-OneBuilding]]
+
+## Recursos mencionados
+
+- **OneBuilding.org** — repositorio global de archivos EPW.
+- **OpenStreetMap** — integrado en FloorspaceJS para dibujar sobre mapas reales.
+- **Gabi** (egresada del IER) — ejemplo de carrera basada en scripting (Python/Ruby) para automatizar Open Studio en consultoría.
+- **SketchUp, Rhino, Blender, Design Builder** — alternativas al editor FloorspaceJS.

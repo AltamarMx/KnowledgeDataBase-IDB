@@ -1,43 +1,97 @@
+---
+title: TMY (Typical Meteorological Year)
+type: concepto
+tags: [concepto, clima, epw, datos, reanalisis]
+aliases: [Typical Meteorological Year, año tipico meteorologico, año-tipico]
+clases: [002]
+updated: 2026-05-02
+---
+
 # TMY — Typical Meteorological Year
 
-Año meteorológico típico usado como entrada climática para simulaciones energéticas. **No es un promedio** de todos los años disponibles.
+## Definición
+
+**Año típico meteorológico**: año "representativo" del clima de una ubicación, construido a partir de varios años de datos. Se usa como entrada climática en simulaciones energéticas — es el contenido del archivo **EPW**.
+
+> **Crucial:** el TMY **no es** el año promedio. Es un año cuyos meses **se parecen más a la distribución** de todos los meses correspondientes en el periodo de datos.
 
 ## Cómo se construye
 
-1. Para cada mes (enero, febrero, ...) se compara ese mes en todos los años disponibles
-2. Se selecciona el mes que más se **parece** a todos los demás (usando distancias estadísticas, no promedios)
-3. El resultado es un año compuesto donde cada mes puede venir de un año diferente
+Para cada mes del año (enero, febrero, ..., diciembre):
 
-**Ejemplo:** un TMY podría tener enero de 2016, febrero de 2018, marzo de 2014, etc.
+1. Toma todos los eneros del periodo de datos (ej. 2007-2021 → 15 eneros).
+2. Mide qué tanto se "parece" cada enero a la distribución conjunta de todos los eneros (usando estadísticas tipo Finkelstein-Schafer — análogo conceptual al $R^2$ de un fit).
+3. Selecciona el enero que minimiza la distancia → ese es el "enero típico".
+4. Repite para los 12 meses.
 
-## Nomenclatura en archivos EPW
+El TMY resultante puede ser un **Frankenstein de años**: enero de 2016, febrero de 2018, marzo de 2016, abril de 2009, etc.
 
-- **TMY3** — formato común, el número indica la generación del dataset
-- El rango de años se indica en el nombre (ej. 2009-2023 o 2007-2021)
-- Diferentes rangos de años producen diferentes TMY
+## Implicaciones
 
-## Fuente principal
+### Suaviza anomalías
 
-**One Building** (climate.onebuilding.org) — colección gratuita de archivos EPW organizados por continente, país y ciudad. Los datos provienen de reanálisis (no de estaciones meteorológicas directamente).
+Por construcción, el TMY descarta meses extremos. Un mes con una ola de calor o una helada anómala difícilmente sale seleccionado porque su distribución no se parece a la mayoría.
 
-## Limitaciones
+**Consecuencia:** simular con TMY tiende a **subdimensionar** estrategias de mitigación contra eventos extremos.
 
-- **Pierde anomalías atípicas:** si un mes tuvo un evento extremo, probablemente no queda seleccionado como "típico"
-- **Pierde tendencias de cambio climático:** el TMY representa un clima "promedio" histórico, no proyecciones futuras
-- **No es un año real:** la transición entre meses de diferentes años puede no ser suave
+### Pierde efecto del cambio climático
 
-## Alternativas
+Los eventos extremos cada vez son más frecuentes. Un TMY de los últimos 15 años promedia (vía representatividad) condiciones que ya no son las actuales:
 
-- Usar datos de un año específico (real) — pero podría ser atípico
-- Construir EPW propio desde estación meteorológica local
-- TMY solar (variante enfocada en representar bien la radiación solar)
+- Subestima frecuencia y severidad de calor extremo.
+- Subestima cambios en patrones de precipitación.
+- No captura tendencias monotónicas.
 
-## Año por defecto en EnergyPlus
+Para análisis con horizonte > 10 años o evaluación de resiliencia, conviene complementar con escenarios de cambio climático (proyecciones del IPCC, downscaling regional).
 
-EnergyPlus asigna **año 2006** por defecto a todas las simulaciones, independientemente de los años reales del TMY. Al cargar resultados en Python, los datetime tendrán año 2006. Si el EPW contiene un 29 de febrero (año bisiesto) y se reasigna a un año no bisiesto, habrá errores — hay que filtrar o elegir un año bisiesto.
+### Datos de reanálisis (no de estaciones)
 
-## Aparece en
+Los TMYs típicos provienen de **datos de reanálisis** (modelos meteorológicos rellenando gaps con física + observaciones), no directamente de estaciones meteorológicas. Se validan donde hay estación; en zonas rurales o sin estación, son la única fuente disponible.
 
-- [[002-ConceptosBasicosBalancesCalor]] — Explicación detallada y fuentes de datos
-- [[005-AnalisisSimulacionesPython]] — Año 2006, manejo de datetime en pandas
-- [[EDA-Archivo-EPW]] — Libreta 002_EDA_EPW: carga EPW de Cuernavaca, filtro del 29 de febrero, promedios mensuales
+## Periodos comunes
+
+Diferentes versiones de TMY se construyen sobre periodos distintos. En OneBuilding, los nombres incluyen el periodo:
+
+- `TMY-2007-2021`
+- `TMY-2009-2023`
+- `TMYx` — actualizaciones más recientes
+
+**Implicación práctica:** dos TMYs de la misma ciudad pueden diferir si el periodo es distinto. Hay que verificar qué periodo se está usando para reportar resultados.
+
+## Alternativas al TMY
+
+| Tipo de archivo | Cuándo usar |
+|-----------------|-------------|
+| **TMY** | Comparar estrategias bioclimáticas en condiciones "normales" |
+| **Año real específico** | Validar contra datos medidos; estudiar un evento concreto |
+| **TMY filtrado / extremo (TDY, TWY)** | Dimensionamiento de equipos para condiciones desfavorables |
+| **Proyecciones de cambio climático** (downscaled) | Resiliencia futura |
+| **Construido localmente desde estación** | Cuando hay estación local confiable y se acepta no tener "típico" |
+
+## Recursos
+
+### OneBuilding.org
+
+Repositorio global con archivos EPW para casi cualquier ciudad. Cada zip trae varios archivos relacionados; uno de ellos es el `.epw`.
+
+### Año típico solar (Jesús Quiñones, instituto)
+
+Versión específica para análisis solar (no meteorológico general), publicada en **ANES**. Útil para Temixco. Contactar al autor si se necesitan los datos.
+
+### Estación meteorológica de Temixco
+
+El grupo construye EPWs propios desde la estación cuando hace experimentos locales — pero esos archivos **no son TMY** (suelen ser de un año específico).
+
+## En el curso
+
+Cada equipo escogerá una **ciudad** para el proyecto final. Tendrán que:
+
+1. Verificar que existe un EPW (TMY o equivalente) para esa ciudad.
+2. Aprender a inspeccionar el EPW (rangos de temperatura, radiación, ventilación) — esto se cubrirá en clases posteriores.
+3. Considerar las temporadas relevantes según el clima.
+
+> **Tip estratégico:** climas con doble extremo (Monterrey, Sonora) generan TMYs con ambas temporadas exigentes → más trabajo de modelado.
+
+## Clases relacionadas
+
+- [[../classes/002-ConceptosBasicosBalancesCalor]] — introducción al concepto y su rol en el archivo EPW

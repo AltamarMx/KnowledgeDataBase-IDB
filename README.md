@@ -2,12 +2,12 @@
 
 ## Qué es esto
 
-Una **base de conocimiento persistente** para las clases en video del taller IDB. Un agente LLM mira los videos, extrae el contenido, lo estructura, genera referencias cruzadas y mantiene el conocimiento organizado a medida que se procesan más clases.
+Una **base de conocimiento persistente** para las clases del taller IDB. Un agente LLM lee tanto las transcripciones (`.md`) de los videos como las libretas Jupyter (`.ipynb`) de análisis, extrae el contenido, lo estructura, genera referencias cruzadas y mantiene el conocimiento organizado a medida que se procesan más clases.
 
 ### Principios clave:
 - **La wiki es un artefacto persistente** — no respuestas temporales de chat
 - **Las referencias cruzadas se construyen automáticamente** — conceptos, herramientas y técnicas se conectan entre clases
-- **El LLM hace el trabajo pesado** (transcribir, estructurar, vincular) — tú controlas la calidad
+- **El LLM hace el trabajo pesado** (estructurar, vincular) — tú controlas la calidad
 - **Tú apruebas todo antes de guardar** — human in the loop
 
 ---
@@ -20,8 +20,8 @@ Una **base de conocimiento persistente** para las clases en video del taller IDB
 4. Supervisar cómo crece la wiki con el tiempo
 
 ### Flujo Human-in-the-Loop:
-- **PASO 1:** Indicas al LLM qué contenido ingerir (video, transcripción o libreta) → el agente localiza el archivo
-- **PASO 2:** El LLM procesa el contenido (mira video / lee transcripción / lee notebook con figuras), extrae contenido, genera borrador estructurado
+- **PASO 1:** Indicas al LLM qué contenido ingerir (transcripción `.md` de un video o libreta `.ipynb`) → el agente localiza el archivo
+- **PASO 2:** El LLM procesa el contenido (lee transcripción / lee notebook con figuras), extrae contenido, genera borrador estructurado
 - **PASO 3:** El LLM te presenta el borrador para revisión
 - **PASO 4:** Apruebas (o pides cambios) → el LLM guarda en `wiki/`
 - **PASO 5:** El LLM actualiza el índice y el log
@@ -38,15 +38,15 @@ Wiki_IDB/
 │   └── INGESTION_GUIDE.md        # Guía paso a paso del flujo de ingesta
 │
 ├── raw/                           # Inmutable: solo AGREGAR contenido, nunca modificar
-│   ├── videos/                   # Videos (.mp4) y transcripciones (.md) de clases
-│   │   ├── 001 introducción al taller IDB.mp4
-│   │   ├── 002 Conceptos Basicos y Balances de Calor.mp4
-│   │   ├── 003 Mi Primera Simulacion.mp4
-│   │   ├── 004 Interpretando los mensajes de simulaciones y construction sets.mp4
-│   │   ├── 005 Primer Analisis de simulaciones usando Python.mp4
-│   │   ├── 006 2 ZonasTermicas con Ventanas y Aleros.mp4
-│   │   ├── 007 Caso base y aleros.mp4
-│   │   └── 008 Shading en ventanas.mp4
+│   ├── videos/                   # Transcripciones (.md) de las clases en video
+│   │   ├── 001 introducción al taller IDB.md
+│   │   ├── 002 Conceptos Basicos y Balances de Calor.md
+│   │   ├── 003 Mi Primera Simulacion.md
+│   │   ├── 004 Interpretando los mensajes de simulaciones y construction sets.md
+│   │   ├── 005 Primer Analisis de simulaciones usando Python.md
+│   │   ├── 006 2 ZonasTermicas con Ventanas y Aleros.md
+│   │   ├── 007 Caso base y aleros.md
+│   │   └── 008 Shading en ventanas.md
 │   └── notebooks/                # Libretas Jupyter de análisis (.ipynb)
 │       ├── 001_EDA.ipynb
 │       └── 002_EDA_EPW.ipynb
@@ -73,7 +73,7 @@ Wiki_IDB/
 
 Cada resumen de clase sigue: `NNN-TituloBreveCamelCase.md`
 
-Donde `NNN` es el número de clase (coincide con el prefijo del video).
+Donde `NNN` es el número de clase (coincide con el prefijo de la transcripción).
 
 Ejemplos:
 - `001-IntroduccionTallerIDB.md`
@@ -87,12 +87,12 @@ Ejemplos:
 
 | Tipo | Ubicación | Formato | Qué se extrae |
 |------|-----------|---------|---------------|
-| **Video de clase** | `raw/videos/*.mp4` | Video o transcripción `.md` junto al video | Resumen, conceptos, procedimientos, herramientas |
+| **Transcripción de clase** | `raw/videos/*.md` | Markdown transcrito del video | Resumen, conceptos, procedimientos, herramientas |
 | **Libreta Jupyter** | `raw/notebooks/*.ipynb` | `.ipynb` (se lee directamente con celdas y figuras) | Código, flujo de análisis, gráficas, hallazgos |
 
 ---
 
-## Qué se genera al ingerir un video de clase
+## Qué se genera al ingerir una transcripción de clase
 
 Cuando apruebas una ingesta, el agente LLM:
 
@@ -100,8 +100,8 @@ Cuando apruebas una ingesta, el agente LLM:
    - Metadatos: número de clase, título, duración, temas principales
    - Resumen estructurado del contenido
    - Conceptos clave explicados
-   - Pasos prácticos / procedimientos mostrados en el video
-   - Timestamps de secciones importantes (cuando es posible identificarlos)
+   - Pasos prácticos / procedimientos mostrados en la clase
+   - Timestamps de secciones importantes (cuando aparecen en la transcripción)
    - Referencias a clases anteriores y siguientes
 
 2. **Actualiza `index.md`** — agrega entrada al catálogo de clases
@@ -157,16 +157,16 @@ El LLM:
 
 ---
 
-## Cómo ingerir un video de clase
+## Cómo ingerir una transcripción de clase
 
 ### Ejemplo: primera clase
 
 ```markdown
-Ingest: raw/videos/001 introducción al taller IDB.mp4
+Ingest: raw/videos/001 introducción al taller IDB.md
 ```
 
 El LLM:
-1. Mira el video completo
+1. Lee la transcripción completa
 2. Extrae el contenido estructurado (temas, explicaciones, demostraciones)
 3. Genera un borrador:
 
@@ -200,7 +200,7 @@ Tú revisas y apruebas → el LLM guarda la página, actualiza el índice, crea 
 ### Clase siguiente (acumula conocimiento)
 
 ```markdown
-Ingest: raw/videos/002 Conceptos Basicos y Balances de Calor.mp4
+Ingest: raw/videos/002 Conceptos Basicos y Balances de Calor.md
 ```
 
 El LLM procesa y detecta que "simulación energética" ya existe como concepto...
@@ -226,10 +226,10 @@ El LLM busca en `wiki/`, encuentra las páginas relevantes, las lee, sintetiza u
 
 ---
 
-## Progresión del taller (videos disponibles)
+## Progresión del taller (transcripciones disponibles)
 
-| # | Video | Temas esperados |
-|---|-------|----------------|
+| # | Transcripción | Temas esperados |
+|---|---------------|----------------|
 | 001 | Introducción al taller IDB | Presentación, objetivos, herramientas |
 | 002 | Conceptos Básicos y Balances de Calor | Fundamentos térmicos, balances energéticos |
 | 003 | Mi Primera Simulación | Primer modelo, configuración básica |
@@ -264,11 +264,11 @@ Este proyecto usa **[uv](https://docs.astral.sh/uv/)** como gestor de paquetes y
 
 - No modificar archivos en `wiki/` directamente — solo el agente LLM los actualiza
 - No borrar archivos de `wiki/concepts/`, `wiki/tools/` o `wiki/procedures/` sin razón
-- No renombrar videos en `raw/videos/` ni notebooks en `raw/notebooks/` — son la fuente inmutable
+- No renombrar transcripciones en `raw/videos/` ni notebooks en `raw/notebooks/` — son la fuente inmutable
 
 ## Qué SÍ hacer
 
-- Agregar nuevos videos a `raw/videos/` y libretas a `raw/notebooks/`
+- Agregar nuevas transcripciones a `raw/videos/` y libretas a `raw/notebooks/`
 - Revisar borradores antes de aprobar
 - Hacer preguntas — las respuestas sustanciales se convierten en páginas
 - Pedir mantenimiento periódico de la wiki
@@ -296,12 +296,12 @@ El agente:
 **Siguiente paso:** indica qué contenido quieres procesar:
 
 ```markdown
-# Ingerir un video de clase
-Ingest: raw/videos/001 introducción al taller IDB.mp4
+# Ingerir la transcripción de una clase
+Ingest: raw/videos/001 introducción al taller IDB.md
 
 # Ingerir una libreta Jupyter
 Ingest: raw/notebooks/001_EDA.ipynb
 ```
 
-El agente procesará el contenido (video, transcripción o libreta), extraerá y estructurará la información, te presentará un borrador → tú apruebas → todo se guarda.
+El agente procesará el contenido (transcripción o libreta), extraerá y estructurará la información, te presentará un borrador → tú apruebas → todo se guarda.
 # KnowledgeDataBase-IDB

@@ -1,46 +1,56 @@
+---
+title: Simulación Energética
+type: concepto
+tags: [concepto, simulacion, energia, edificaciones]
+clases: [001]
+updated: 2026-05-02
+---
+
 # Simulación Energética
 
-Modelado numérico del comportamiento térmico y energético de una edificación a lo largo del tiempo. Resuelve balances de energía y masa a través de la envolvente arquitectónica, considerando el clima exterior como forzante.
+## Definición
 
-## Ideas clave
+Uso de software para resolver el **balance de calor dependiente del tiempo** a través de la envolvente arquitectónica de una edificación, dadas unas condiciones climáticas externas. Permite cuantificar el comportamiento térmico antes de construir.
 
-- Energy Plus resuelve el problema de **transferencia de calor dependiente del tiempo** a través de la envolvente
-- Se requieren dos archivos: un **IDF** (modelo de la edificación) y un **EPW** (datos climáticos)
-- Los mecanismos de transferencia modelados incluyen: conducción, convección y radiación
-- El resultado permite evaluar temperatura interior, confort térmico y consumo de energía
-- La documentación técnica está en el Engineering Reference de Energy Plus (~1,800 páginas)
+## Para qué sirve en este curso
 
-## Métodos numéricos
+**Cuantificar el impacto** de estrategias bioclimáticas: comparar configuraciones (color, orientación, aleros, ventanas, materiales) y obtener métricas objetivas — temperatura interior, horas de disconfort, consumo energético — en lugar de razonar cualitativamente.
 
-EnergyPlus resuelve la ecuación de calor en **1 dimensión** (perpendicular a cada superficie), dependiente del tiempo:
+## Componentes mínimos de una simulación
 
-| Método | Tipo | Ventaja |
-|--------|------|---------|
-| **Conduction Transfer Function (CTF)** | Semi-analítico (funciones de transferencia) | Solución instantánea, muy rápida. Método por defecto |
-| **Diferencias Finitas** | Numérico (discretización) | Más intuitivo, necesario para materiales con propiedades variables |
+1. **Geometría** ([[Envolvente-Arquitectonica]]): la volumetría de la edificación.
+2. **Sistemas constructivos** ([[Sistemas-Constructivos]]): qué materiales tiene cada superficie.
+3. **Condiciones de frontera** ([[Condiciones-de-Frontera]]): cómo interactúa cada superficie con su entorno (otra zona, exterior, suelo, adiabática).
+4. **Archivo de clima (EPW)**: el forzante externo — temperatura ambiente, radiación solar, humedad, viento, lluvia, presión atmosférica para una ubicación geográfica específica.
+5. **Motor de cálculo**: en este curso, [[../tools/EnergyPlus]].
 
-**Distinción crítica:** una "simulación dinámica" que solo usa U o R con clima variable NO es dependiente del tiempo — no considera masa térmica. EnergyPlus sí resuelve el modelo completo. Las NOM-008 y NOM-020 de México usan el modelo independiente del tiempo.
+## Alcance del modelo en este curso
 
-## Simplificaciones en este curso
+Las simulaciones del taller son una **caricatura** de la realidad — útil para entender pero no para diseño profesional sin más:
 
-- Sin ventilación natural
-- Sin cargas térmicas internas (personas, equipos)
+- Sin ventilación natural (zonas herméticas)
+- Sin cargas térmicas internas (personas, equipos, iluminación)
 - Geometrías simples (cubos)
 - Piso adiabático
 
-Estas simplificaciones hacen que el resultado **no represente una edificación real**, pero el orden de efectividad de las estrategias se conserva.
+Detalles y razones en [[../classes/001-IntroduccionTallerIDB]].
 
-## Fase de análisis de resultados
+## Implicación interpretativa
 
-Hacer la simulación es "la parte fácil". El análisis de datos es obligatorio, especialmente para edificaciones sin aire acondicionado donde el objetivo no es minimizar energía sino evaluar confort térmico a lo largo del tiempo. El flujo incluye:
-1. Configurar variables de salida (measures en Open Studio)
-2. Cargar resultados desde el SQL con Python (ear_tools)
-3. Verificar sistemas constructivos
-4. Graficar series temporales (temperaturas, radiación)
-5. Evaluar confort con modelos adaptativos
+Los **resultados absolutos no son trasladables** a edificaciones reales, pero el **orden relativo entre estrategias se conserva**: la mejor estrategia en el modelo simplificado tiende a ser la mejor en la realidad. Por eso sirve como **guía de priorización**, no como cifra final.
 
-## Aparece en
+## Ecosistema de software (panorama)
 
-- [[001-IntroduccionTallerIDB]] — Introducción al concepto y al ecosistema de simulación
-- [[002-ConceptosBasicosBalancesCalor]] — Métodos numéricos, ecuaciones y restricciones (1D, superficies planas)
-- [[005-AnalisisSimulacionesPython]] — Flujo completo de análisis de resultados
+| Programa | Tipo | Uso |
+|----------|------|-----|
+| Energy Plus | Motor de cálculo, libre | Núcleo del curso |
+| Open Studio | Interfaz libre sobre Energy Plus | Lo usamos como GUI |
+| Design Builder | Interfaz comercial sobre Energy Plus | No se usa (de paga, propicia malas prácticas) |
+| Rhino + LadyBug | Suite paramétrica, comercial | No se usa (Rhino de paga) |
+| TRNSYS | Motor europeo | Alternativa a Energy Plus |
+| Radiance | Iluminación natural | Fuera del alcance |
+| IES | Interfaz comercial | No se usa |
+
+## Clases relacionadas
+
+- [[../classes/001-IntroduccionTallerIDB]] — introducción al concepto y al alcance del curso
