@@ -40,9 +40,9 @@ Un `.sql` no es texto plano — abrirlo con un editor muestra binario incomprens
 - Un **script** que abra la base y haga queries (Python con `sqlite3`, R, etc.).
 - Un **reporting measure** de Open Studio que extraiga lo que se necesite y lo escriba en HTML/CSV.
 
-## El paquete del grupo para Python — `ear_tools`
+## El paquete del grupo para Python — `iertools`
 
-El grupo de Energía en Edificaciones del IER mantiene **`ear_tools`** — paquete que lee el SQL directamente y devuelve dataframes de pandas con las series temporales. Detalle de la API en [[../tools/ear-tools]].
+El grupo de Energía en Edificaciones del IER mantiene **`iertools`** — paquete que lee el SQL directamente y devuelve dataframes de pandas con las series temporales. Detalle de la API en [[../tools/iertools]].
 
 Ventajas vs CSV nativo:
 
@@ -73,7 +73,7 @@ Las libretas Jupyter que apuntan al CSV con un path fijo se rompen. **El SQL sie
 
 ### 3. Renombre de columnas (alias) integrado
 
-`ear_tools` con `alias=True` renombra las columnas largas como `CUBO:Zone Mean Air Temperature [C]` a nombres cortos como `T_cubo` — accesibles con punto-atributo en pandas. Convención completa en [[../tools/ear-tools]].
+`iertools` con `alias=True` renombra las columnas largas como `CUBO:Zone Mean Air Temperature [C]` a nombres cortos como `T_cubo` — accesibles con punto-atributo en pandas. Convención completa en [[../tools/iertools]].
 
 ## Reporte HTML
 
@@ -110,4 +110,4 @@ Para una simulación anual con paso de 10 minutos y dos zonas térmicas:
 ## Clases relacionadas
 
 - [[../classes/004-InterpretandoMensajesConstructionSets]] — introducción a los formatos de salida y mención del paquete Python del profesor
-- [[../classes/005-AnalisisSimulacionesPython]] — `ear_tools.read_sql` en uso, problemas concretos del CSV (`24:00`, numeración de folders)
+- [[../classes/005-AnalisisSimulacionesPython]] — `iertools.read_sql` en uso, problemas concretos del CSV (`24:00`, numeración de folders)

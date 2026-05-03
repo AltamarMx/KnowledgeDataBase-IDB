@@ -5,7 +5,7 @@ clase: 007
 profesor: Guillermo Barrios del Valle
 fuente: raw/videos/007CasoBaseAleros.md
 fecha_ingesta: 2026-05-02
-tags: [clase, caso-base, aleros, comparacion, python, ear-tools, proyecto-final, debugging]
+tags: [clase, caso-base, aleros, comparacion, python, iertools, proyecto-final, debugging]
 aliases: [Clase 007]
 ---
 
@@ -40,8 +40,8 @@ El profesor abre con el cómic **XKCD "Automation"** (https://xkcd.com/1319/):
 
 Aplicación al taller:
 
-- **Sí automatizar**: cosas que harás muchas veces. `ear_tools` es la única automatización que el profesor mantiene porque la usa todos los días.
-- **No automatizar**: cosas one-shot. El bug del 29-feb en `ear_tools` sigue sin parchearse — "empezar a considerar todas las opciones que el usuario puede tener" es la fuente de complejidad.
+- **Sí automatizar**: cosas que harás muchas veces. `iertools` es la única automatización que el profesor mantiene porque la usa todos los días.
+- **No automatizar**: cosas one-shot. El bug del 29-feb en `iertools` sigue sin parchearse — "empezar a considerar todas las opciones que el usuario puede tener" es la fuente de complejidad.
 
 Cuando se decide automatizar, conviene:
 
@@ -348,5 +348,5 @@ Procedimiento nuevo:
 - **XKCD #1319 "Automation"** — la trampa de la programación.
 - **PhD Comics** ("Piled Higher and Deeper") — el otro cómic del profesor.
 - **Paloma** (ex-alumna del grupo) — caso de validación alero detallado vs equivalente con transmitancia.
-- **Bug del 29-feb en `ear_tools`** — sigue sin parchear.
+- **Bug del 29-feb en `iertools`** — sigue sin parchear.
 - **OpenStudio Coalition** — issue tracker para reportar bugs como el del piso adiabático.

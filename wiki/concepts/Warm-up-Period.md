@@ -3,7 +3,7 @@ title: Warm-up Period
 type: concepto
 tags: [concepto, energyplus, simulacion, condicion-inicial, masa-termica]
 aliases: [warmup, periodo de calentamiento, periodo de warming up]
-clases: [004]
+clases: [004, 010]
 updated: 2026-05-02
 ---
 
@@ -65,6 +65,16 @@ En el IDF/OSM:
 - `Building` → **Maximum Number of Warmup Days**, **Minimum Number of Warmup Days**, **Loads Convergence Tolerance Value**, **Temperature Convergence Tolerance Value**.
 - Por default: max 25 días, min 1 día, tolerancia de temperatura 0.4 °C.
 
+## Comparación con Estado Oscilatorio Permanente
+
+[[Estado-Oscilatorio-Permanente]] (usado por [[../tools/EnerHabitat]]) usa el mismo principio físico — repetir el día hasta que el estado al inicio = estado al final. Diferencia clave:
+
+| Aspecto | Warm-up E+ | Oscilatorio EnerHabitat |
+|---------|------------|-------------------------|
+| Propósito | **Pre-cálculo** para olvidar la condición inicial | **Es el cálculo principal** — el resultado se reporta |
+| Después | E+ continúa la simulación con días distintos | EnerHabitat termina y reporta el ciclo convergido |
+
 ## Clases relacionadas
 
 - [[../classes/004-InterpretandoMensajesConstructionSets]] — explicación detallada con dibujo a mano del proceso de convergencia
+- [[../classes/010-EnerHabitatParte1]] — comparación con el oscilatorio permanente de EnerHabitat

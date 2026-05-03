@@ -1,9 +1,9 @@
 ---
 title: Analizar resultados de simulación con Python
 type: procedimiento
-tags: [procedimiento, python, ear-tools, pandas, matplotlib, sql, analisis]
+tags: [procedimiento, python, iertools, pandas, matplotlib, sql, analisis]
 aliases: [analizar resultados, leer sql python, plot simulacion]
-clases: [005, 006, 007]
+clases: [005, 006, 007, 009, 011]
 updated: 2026-05-02
 ---
 
@@ -14,7 +14,7 @@ Procedimiento para cargar el SQL de Energy Plus en Python y producir las gráfic
 ## Pre-requisitos
 
 - Simulación ya ejecutada con las variables solicitadas. Ver [[Solicitar-Output-Variables-Measures]].
-- Entorno Python listo con `ear_tools`. Ver [[Setup-Entorno-Python-uv]].
+- Entorno Python listo con `iertools`. Ver [[Setup-Entorno-Python-uv]].
 
 ## 1. Lanzar Jupyter Notebook
 
@@ -31,7 +31,7 @@ Crear una nueva libreta dentro de `notebooks/`. Renombrarla con la convención d
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
-from ear_tools.read import read_sql
+from iertools.read import read_sql
 from dateutil.parser import parse
 ```
 
@@ -51,7 +51,7 @@ f = "../OSM/mi_primer_cubo/run/eplusout.sql"
 cubo = read_sql(f, alias=True)
 ```
 
-Devuelve un objeto con varias propiedades. Detalle en [[../tools/ear-tools]].
+Devuelve un objeto con varias propiedades. Detalle en [[../tools/iertools]].
 
 ### Inspeccionar sistemas constructivos (auditoría)
 
@@ -78,7 +78,7 @@ df = cubo.data
 df.head()
 ```
 
-Con `alias=True`, las columnas tienen nombres cortos: `T_cubo`, `TO`, `IB`, `ID`, `RH`, `WS`, `WD`, etc. Ver convención completa en [[../tools/ear-tools]].
+Con `alias=True`, las columnas tienen nombres cortos: `T_cubo`, `TO`, `IB`, `ID`, `RH`, `WS`, `WD`, etc. Ver convención completa en [[../tools/iertools]].
 
 ## 5. Hacer la gráfica de doble panel
 
@@ -118,7 +118,7 @@ Por esto se eligen prefijos consistentes (`T_`, `IS_`, `IB_`, `ID_`) — para it
 
 ### Renombrado custom con diccionario
 
-Cuando los alias automáticos de `ear_tools` no cubren todos los casos (típicamente: nombres custom de superficies como `Techo`, `vNorte`, `vOeste`):
+Cuando los alias automáticos de `iertools` no cubren todos los casos (típicamente: nombres custom de superficies como `Techo`, `vNorte`, `vOeste`):
 
 ```python
 # Construir el diccionario base con dict comprehension
@@ -239,6 +239,7 @@ df = cubo.data
 # 4. Filtrar/agregar
 mes = df.resample("ME").mean()       # promedio mensual
 dia = df.resample("D").max()         # máximo diario
+energia_mes = df.resample("ME").sum()  # energía acumulada mensual (J)
 
 # 5. Comparar — muchas simulaciones
 casos = {
@@ -249,6 +250,113 @@ for nombre, sim in casos.items():
     plt.plot(sim.data.T_cubo, label=nombre)
 plt.legend()
 ```
+
+## Patrones de plotting adicionales (clase 009)
+
+### Resample mensual con `resample()`
+
+Para series temporales, `resample` es la herramienta clave. Frecuencias:
+
+| Alias | Significado |
+|-------|-------------|
+| `"H"` | Hora |
+| `"D"` | Día |
+| `"W"` | Semana |
+| `"ME"` | Month-End (mes calendario) |
+| `"YE"` | Year-End (año) |
+
+Operaciones: `.sum()`, `.mean()`, `.max()`, `.min()`, `.std()`.
+
+### Gráfica de barras mensual (consumo AC)
+
+```python
+fig, ax = plt.subplots(figsize=(10, 4))
+energia_mes_kWh = df["cooling_energy_J"].resample("ME").sum() / 3.6e6  # J → kWh
+
+ax.bar(range(1, 13), energia_mes_kWh.values)
+ax.set_xticks(range(1, 13))
+ax.set_xticklabels(["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"])
+ax.set_ylabel("Energía cooling (kWh)")
+```
+
+`ax.bar(x, height)` requiere posiciones X explícitas — `range(1, 13)` para los 12 meses.
+
+### Variable constante — workaround del ylim
+
+Cuando una serie es **constante** (ej. T en setpoint fijo), matplotlib se confunde con el ylim automático. Forzar manualmente:
+
+```python
+ax.plot(df.T_zona)
+ax.set_ylim(15, 25)  # límites manuales
+```
+
+> Caso real: el profesor descubre esto en vivo en clase 009 graficando una T mantenida en 20 °C constante.
+
+## Anti-patrones de Python observados (clase 011)
+
+### Referencias compartidas — `df_b = df_a` no es copia
+
+> "En Python, si yo digo `df_b = df_a`, esos dos quedan enlazados. Si modifico uno se cambia el otro porque están apuntando a arreglos dinámicos en memoria."
+
+```python
+# ❌ MAL — df_b y df_a son la MISMA referencia
+df_b = df_a
+df_b["nueva_col"] = ...   # también afecta df_a
+
+# ✅ BIEN — copia independiente
+df_b = df_a.copy()
+df_b["nueva_col"] = ...   # df_a no se afecta
+```
+
+Bug silencioso típico — los cambios se "propagan" sin error visible. Especialmente peligroso al hacer copias para modificarlas individualmente.
+
+### Iteración sobre DataFrames es lenta — usar NumPy
+
+> "Iterar un DataFrame para resolver problemas de transferencia de calor es muy lento. Pásenlos a NumPy y aquello vuela."
+
+EnerHabitat originalmente usaba DataFrames internamente → 3 minutos por simulación. Migración a NumPy arrays → 3 segundos.
+
+```python
+# ❌ LENTO — iterar DataFrame
+for i, row in df.iterrows():
+    ... # cálculos sobre row
+
+# ✅ RÁPIDO — vectorizar con NumPy
+arr = df.values  # convertir a array
+... # operaciones vectorizadas sobre arr
+```
+
+**Buena práctica**: para cálculos numéricos pesados, usar **NumPy arrays**. Reservar DataFrames para análisis exploratorio y postprocesamiento.
+
+### Numba para acelerar loops numéricos
+
+Cuando los loops son inevitables (cálculos iterativos como solvers numéricos), `numba` compila la función a código nativo:
+
+```python
+from numba import jit
+
+@jit(nopython=True)
+def mi_solver(arr_in):
+    for i in range(len(arr_in)):
+        ...  # cálculos numéricos
+    return arr_in
+```
+
+Speed-up típico: 50-100×. Imprescindible para producción.
+
+### Reproducibilidad frágil de Jupyter — Restart and Run All
+
+> "Reproducibilidad en libretas Jupyter es bien frágil, bien frágil."
+
+Caso típico: una variable definida en una celda se borra del código pero queda en memoria → la libreta corre aparentemente bien hasta que se hace **Restart and Run All** y revela el bug.
+
+Hacer **Kernel → Restart and Run All** periódicamente — al menos antes de:
+
+- Cerrar el día.
+- Compartir la libreta.
+- Reportar resultados.
+
+Si falla al reiniciar, hay variables fantasma o orden no-lineal — corregir.
 
 ## Trampas comunes
 
@@ -269,3 +377,5 @@ Ver [[EDA-Archivo-EPW]] — flujo paralelo usando `read_epw` en lugar de `read_s
 - [[../classes/005-AnalisisSimulacionesPython]] — demo completa del flujo
 - [[../classes/006-DosZonasTermicasVentanasAleros]] — patrón de "día más cálido" con criterio explícito
 - [[../classes/007-CasoBaseAleros]] — list comprehensions sobre columnas, renombrado con diccionario, función de carga reutilizable
+- [[../classes/009-AireAcondicionadoSetPoints]] — `resample("ME").sum()` para energía mensual, gráfica de barras, workaround ylim
+- [[../classes/011-EnerHabitatParte2]] — anti-patrones (referencias compartidas, NumPy vs DataFrame, fragilidad Jupyter)

@@ -1,9 +1,9 @@
 ---
 title: Setup del entorno Python con uv
 type: procedimiento
-tags: [procedimiento, python, uv, ambientes-virtuales, jupyter, ear-tools]
+tags: [procedimiento, python, uv, ambientes-virtuales, jupyter, iertools]
 aliases: [setup uv, instalar python, ambiente virtual]
-clases: [005]
+clases: [005, 010]
 updated: 2026-05-02
 ---
 
@@ -29,7 +29,7 @@ Alternativas conocidas:
 ## Pre-requisitos
 
 - **uv instalado** en el sistema. Instalación: ver `https://docs.astral.sh/uv/`. En Mac/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`.
-- **Git** instalado (para descargar `ear_tools` desde GitHub).
+- **Git** instalado (para descargar `iertools` desde GitHub).
 
 ## 1. Posicionarse en el folder del proyecto
 
@@ -66,7 +66,7 @@ Esto crea:
 
 ```bash
 uv add pandas jupyter matplotlib python-dateutil
-uv add git+https://github.com/<grupo-IER>/ear-tools.git
+uv add git+https://github.com/<grupo-IER>/iertools.git
 ```
 
 (URL exacta del repo según el README del taller — el profesor la comparte por GitHub directo.)
@@ -88,7 +88,8 @@ Esto:
 | `jupyter` | Notebook interactivo |
 | `matplotlib` | Gráficas |
 | `python-dateutil` | Parser flexible de fechas (`dateutil.parser.parse`) |
-| `ear-tools` | Lectura de SQL/EPW + auditoría de constructions |
+| `iertools` | Lectura de SQL/EPW + auditoría de constructions |
+| `enerhabitat` (opcional) | Evaluación rápida de sistemas constructivos. Ver [[../tools/EnerHabitat]] |
 
 (numpy entra como dependencia transitiva de pandas.)
 

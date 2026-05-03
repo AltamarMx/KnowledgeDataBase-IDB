@@ -3,7 +3,7 @@ title: Estructura del proyecto de simulación
 type: procedimiento
 tags: [procedimiento, openstudio, organizacion, archivos, narrativa-computacional]
 aliases: [estructura proyecto, organizacion archivos, narrativa computacional]
-clases: [003, 004, 007]
+clases: [003, 004, 007, 008]
 updated: 2026-05-02
 ---
 
@@ -146,8 +146,31 @@ proyecto_final/
 
 Cada variante se crea con `Save As` desde el caso base — nunca con copia/pega en el Explorador. Detalle en [[../concepts/Caso-Base]] y [[Comparar-Simulaciones-Python]].
 
+## Estructura de libretas Jupyter para el proyecto final
+
+Convención recomendada por el profesor (clase 008): **separar el análisis en libretas con responsabilidades claras**, terminando con una libreta que **unifica resultados**.
+
+```
+notebooks/
+├── 001_EDA_simulacion.ipynb        ← verificar propiedades, sistemas constructivos, sanity
+├── 002_EDA_EPW.ipynb               ← cargar EPW, T neutralidad mensual, zona de confort
+├── 003_analisis_individual.ipynb   ← para cada caso: cargar SQL, calcular grados-hora
+└── 004_unificacion_resultados.ipynb ← tabla comparativa, gráficas finales del reporte
+```
+
+Beneficios:
+
+- **División del trabajo**: el equipo puede repartirse las libretas (alguien la simulación, alguien EDA, alguien análisis).
+- **Reproducibilidad**: cada libreta corre con `Restart and Run All` independientemente.
+- **Reuso**: la libreta `001_EDA_simulacion.ipynb` se aplica a las 5 simulaciones cambiando solo el path.
+
+> "Mi carta santa es que todos sepan hacer todo. Pero sé que es complicado."
+
+Detalle de la libreta `004` (unificación) en [[Comparar-Simulaciones-Python]] sección "Comparación cuantitativa".
+
 ## Clases relacionadas
 
 - [[../classes/003-MiPrimeraSimulacion]] — primera tarea que requiere esta estructura
 - [[../classes/004-InterpretandoMensajesConstructionSets]] — caso real del OSM movido al folder hermano y consecuencias
 - [[../classes/007-CasoBaseAleros]] — estructura del proyecto final con 5 simulaciones; regla de Save As vs copia en Explorador
+- [[../classes/008-ShadingVentanas]] — estructura de libretas Jupyter para el proyecto final con libreta unificadora

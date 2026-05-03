@@ -28,7 +28,7 @@ Antes de hacer la primera variante, el caso base debe tener:
 | Aspecto | Confirmar |
 |---------|-----------|
 | **Geometría** | Render By Boundary correcto (Outdoor/Surface/Ground/Adiabatic). Render By Surface Type correcto. Sin avisos de geometría en `.err`. |
-| **Sistemas constructivos** | Materiales con propiedades correctas (`ear_tools` permite auditarlas — ver [[../tools/ear-tools]]). Construction Set asignado a la edificación. Slots cubiertos para todas las combinaciones tipo+condición presentes. |
+| **Sistemas constructivos** | Materiales con propiedades correctas (`iertools` permite auditarlas — ver [[../tools/iertools]]). Construction Set asignado a la edificación. Slots cubiertos para todas las combinaciones tipo+condición presentes. |
 | **Zonas térmicas** | Cada espacio mapeado a una zona térmica. Nombres descriptivos sin acentos/eñes/espacios. |
 | **EPW** | Asignado, con lat/lon/timezone correctos. |
 | **Sub-superficies** | Ventanas con material y construction asignados. Construction Set tiene slot Sub Surface. |
@@ -60,7 +60,7 @@ Cuando el modelo de desarrollo está estable y revisado:
 1. `File → Save As` con un nombre descriptivo: `005_caso_base.osm`.
 2. Renombrar también la zona térmica/folder hermano si conviene.
 3. Correr una vez limpio.
-4. Auditar las constructions con `ear_tools.read_sql(...).get_constructions(...)`.
+4. Auditar las constructions con `iertools.read_sql(...).get_constructions(...)`.
 5. **Etiquetarlo como congelado** (mentalmente o en el README del proyecto). De aquí en adelante: solo se duplica con `Save As` para crear variantes.
 
 ## Cómo NO copiar el caso base
@@ -74,7 +74,7 @@ Resultado: solo se duplica el `.osm` — **el folder hermano no se copia**, y co
 ## Comparación caso base vs variante en Python
 
 ```python
-from ear_tools.read import read_sql
+from iertools.read import read_sql
 
 base    = read_sql("../OSM/005_caso_base/run/eplusout.sql", alias=True).data
 alero   = read_sql("../OSM/007_estrategia_aleros/run/eplusout.sql", alias=True).data

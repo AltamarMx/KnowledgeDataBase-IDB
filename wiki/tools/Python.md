@@ -36,7 +36,7 @@ updated: 2026-05-02
 | `jupyter` | Notebook interactivo |
 | `matplotlib` | Gráficas |
 | `python-dateutil` | Parser flexible de fechas (`dateutil.parser.parse`) |
-| **`ear_tools`** | Lectura directa del SQL/EPW de Energy Plus, alias cortos, auditoría de constructions. Paquete del grupo IER. Ver [[ear-tools]] |
+| **`iertools`** | Lectura directa del SQL/EPW de Energy Plus, alias cortos, auditoría de constructions. Paquete del grupo IER. Ver [[iertools]] |
 
 (numpy entra como dependencia transitiva de pandas.)
 
@@ -48,7 +48,7 @@ Procedimiento completo en [[../procedures/Setup-Entorno-Python-uv]]. Resumen:
 cd <folder-del-proyecto>
 uv init
 uv add pandas jupyter matplotlib python-dateutil
-uv add git+https://github.com/<grupo-IER>/ear-tools.git
+uv add git+https://github.com/<grupo-IER>/iertools.git
 uv run jupyter notebook
 ```
 
@@ -144,7 +144,7 @@ A diferencia de Energy Plus, en Python la IA es **útil**: análisis de datos, c
 
 - [[../classes/001-IntroduccionTallerIDB]] — introducción al rol de Python en el curso
 - [[../classes/004-InterpretandoMensajesConstructionSets]] — mención del paquete del profesor para leer SQL directo, anuncio del análisis de series temporales en clases siguientes
-- [[../classes/005-AnalisisSimulacionesPython]] — primera demo end-to-end del análisis con `ear_tools`, plotting con matplotlib, EDA del EPW
+- [[../classes/005-AnalisisSimulacionesPython]] — primera demo end-to-end del análisis con `iertools`, plotting con matplotlib, EDA del EPW
 
 ## Procedimientos
 

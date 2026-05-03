@@ -3,7 +3,7 @@ title: Solicitar variables de output con measures
 type: procedimiento
 tags: [procedimiento, openstudio, output, measures, bcl, rdd]
 aliases: [pedir output variables, add output variable, create csv output]
-clases: [005]
+clases: [005, 008, 009]
 updated: 2026-05-02
 ---
 
@@ -76,9 +76,23 @@ En la pestaña **Measures** del modelo:
 | 1 | Add Output Variable | `Site Outdoor Air Drybulb Temperature` | `*` |
 | 2 | Add Output Variable | `Site Direct Solar Radiation Rate per Area` | `*` |
 | 3 | Add Output Variable | `Site Diffuse Solar Radiation Rate per Area` | `*` |
-| 4 | Add Output Variable | `Zone Mean Air Temperature` | `*` |
-| 5 | Add Output Variable | `Zone Operative Temperature` | `*` |
-| 6 | Add Output Variable | `Surface Outside Face Incident Solar Radiation Rate per Area` | `Techo` (nombre específico) |
+| 4 | Add Output Variable | `Site Solar Altitude Angle` | `*` |
+| 5 | Add Output Variable | `Zone Mean Air Temperature` | `*` |
+| 6 | Add Output Variable | `Zone Operative Temperature` | `*` |
+| 7 | Add Output Variable | `Surface Outside Face Incident Solar Radiation Rate per Area` | `Techo` (nombre específico) |
+| 8 | Add Output Variable | `Surface Outside Face Sunlit Fraction` | nombre de la ventana — necesario para auditar sombreamiento sobre sub-superficies, ver [[Auditar-Sombreamiento-Ventanas]] |
+
+### Variables adicionales para Aire Acondicionado (clase 009)
+
+Cuando hay [[../concepts/Aire-Acondicionado-Ideal|Ideal Air Loads]] activo:
+
+| # | Variable Name | Key Value |
+|---|---------------|-----------|
+| 9 | `Zone Ideal Loads Zone Total Cooling Energy` | nombre de la zona — energía mensual con `resample("ME").sum()` |
+| 10 | `Zone Ideal Loads Zone Total Heating Energy` | nombre de la zona — análoga para calefacción |
+| 11 | `Zone Ideal Loads Zone Sensible Cooling Rate` | nombre de la zona — potencia instantánea para series temporales |
+| 12 | `Zone Thermostat Cooling Setpoint Temperature` | nombre de la zona — verificar que el schedule llegó al IDF |
+| 13 | `Zone Thermostat Heating Setpoint Temperature` | nombre de la zona — análoga |
 
 ## 4. Agregar el measure `Create CSV Output`
 
@@ -89,7 +103,7 @@ Solo uno (no por variable):
 3. Configurar:
    - **Reporting Frequency** → `Timestep` (debe coincidir con la de Add Output Variable; si difieren, falla).
 
-> El CSV es opcional para el análisis (porque `ear_tools` lee directo del SQL — ver [[../tools/ear-tools]]). Pero **conviene tenerlo** como verificación visual rápida: si no tiene la columna esperada, algo en la configuración falló.
+> El CSV es opcional para el análisis (porque `iertools` lee directo del SQL — ver [[../tools/iertools]]). Pero **conviene tenerlo** como verificación visual rápida: si no tiene la columna esperada, algo en la configuración falló.
 
 ## 5. Asignar nombres descriptivos a superficies (cuando se usa Key Value específico)
 
@@ -144,8 +158,10 @@ Si una columna falta:
 
 ## Cómo afecta esto al folder de outputs
 
-Cada Reporting Measure crea su propio sub-folder en `run/` con un número en orden de ejecución (`004_addOutputVariable`, `005_addOutputVariable`, …). Por eso `ear_tools` lee del SQL — el SQL **no se mueve** y siempre está en `run/eplusout.sql`. Detalle en [[../concepts/Salida-SQL-EnergyPlus]].
+Cada Reporting Measure crea su propio sub-folder en `run/` con un número en orden de ejecución (`004_addOutputVariable`, `005_addOutputVariable`, …). Por eso `iertools` lee del SQL — el SQL **no se mueve** y siempre está en `run/eplusout.sql`. Detalle en [[../concepts/Salida-SQL-EnergyPlus]].
 
 ## Clases relacionadas
 
 - [[../classes/005-AnalisisSimulacionesPython]] — demo en vivo del flujo
+- [[../classes/008-ShadingVentanas]] — `Sunlit Fraction` necesaria para auditar sombreamiento sobre ventanas
+- [[../classes/009-AireAcondicionadoSetPoints]] — variables de Ideal Air Loads

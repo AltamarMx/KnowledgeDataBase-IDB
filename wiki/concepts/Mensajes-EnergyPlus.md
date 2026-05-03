@@ -3,7 +3,7 @@ title: Mensajes de Energy Plus (Errores y Warnings)
 type: concepto
 tags: [concepto, energyplus, debugging, errores, warnings]
 aliases: [errores energyplus, warnings energyplus, archivo err, eplusout.err]
-clases: [004, 005, 006, 007]
+clases: [004, 005, 006, 007, 008]
 updated: 2026-05-02
 ---
 
@@ -76,6 +76,7 @@ Open Studio está pensado para análisis de **consumo energético** y **ciclo de
 | Warning | Por qué aparece | Por qué se puede ignorar |
 |---------|-----------------|---------------------------|
 | Falta de **design days** en el EPW | Open Studio espera días de diseño para dimensionar HVAC | El curso no dimensiona HVAC |
+| `Many overlapping shadows` | Geometría con muchos elementos sombreadores (aleros, parteluces, vecinos) que se traslapan | El algoritmo de overlapping los resuelve correctamente — ignorable salvo si la simulación es muy lenta. Ver [[Algoritmo-Sombreamiento]] |
 | **Output variables faltantes** para Lifecycle Assessment | Esperaba consumo por uso final, fuentes de energía, etc. | El curso no hace LCA |
 | Site/Source factors no especificados | Esperaba factores de conversión sitio→fuente | El curso no calcula consumo neto |
 | Falta de **schedules** para cargas internas | Espera ocupación, iluminación, equipos | El curso no modela cargas internas |
@@ -149,3 +150,4 @@ La simulación es válida cuando:
 - [[../classes/005-AnalisisSimulacionesPython]] — uso del `.rdd` (hermano del `.err`) para descubrir variables
 - [[../classes/006-DosZonasTermicasVentanasAleros]] — warnings nuevos: vértices colineales y weather location difference; analogía con compiladores C; política del grupo
 - [[../classes/007-CasoBaseAleros]] — bugs recurrentes: piso adiabático que se revierte, nombres de superficies borrados
+- [[../classes/008-ShadingVentanas]] — warning "many overlapping shadows"; reflexión sobre cuándo culpar a E+ (10:2 reglas)

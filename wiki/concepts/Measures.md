@@ -98,7 +98,7 @@ Aunque el taller no escribe measures (Ruby es horrible — palabras del profesor
 
 Procedimiento de configuración: [[../procedures/Solicitar-Output-Variables-Measures]].
 
-> Nota práctica: cada Reporting Measure crea su propio sub-folder en `run/` con un número en orden de ejecución (`004_addOutputVariable`, `005_addOutputVariable`, ...). Si se agregan o quitan measures, los números cambian — por eso `ear_tools` lee del SQL (estable en `run/eplusout.sql`) en lugar del CSV. Detalle en [[Salida-SQL-EnergyPlus]].
+> Nota práctica: cada Reporting Measure crea su propio sub-folder en `run/` con un número en orden de ejecución (`004_addOutputVariable`, `005_addOutputVariable`, ...). Si se agregan o quitan measures, los números cambian — por eso `iertools` lee del SQL (estable en `run/eplusout.sql`) en lugar del CSV. Detalle en [[Salida-SQL-EnergyPlus]].
 
 ## Cobertura en el curso
 

@@ -20,9 +20,13 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 | 002 | [[classes/002-ConceptosBasicosBalancesCalor]] | Zona térmica, modelo dependiente del tiempo, módulos de Energy Plus, balance en superficie exterior, EPW/TMY |
 | 003 | [[classes/003-MiPrimeraSimulacion]] | Balance interior, balance de aire, mezclado perfecto, primer modelo en Open Studio (FloorspaceJS, EPW, materiales, condiciones de frontera, Run) |
 | 004 | [[classes/004-InterpretandoMensajesConstructionSets]] | Flujo OSM→IDF, lectura del `.err`, errores vs warnings, Construction Sets, Warm-up Period, Shadow Update, salidas SQL/CSV/HTML, Site/Source factors |
-| 005 | [[classes/005-AnalisisSimulacionesPython]] | RDD y catálogo de variables, T operativa, capa límite, measures de output, paquete `ear_tools`, setup uv, plotting con matplotlib, EDA del EPW, confort adaptativo |
+| 005 | [[classes/005-AnalisisSimulacionesPython]] | RDD y catálogo de variables, T operativa, capa límite, measures de output, paquete `iertools`, setup uv, plotting con matplotlib, EDA del EPW, confort adaptativo |
 | 006 | [[classes/006-DosZonasTermicasVentanasAleros]] | Dos zonas con alturas distintas, limpieza de geometría, ventanas (sub-superficies, materiales Glazing/SimpleGlazing, marcos), aleros y parteluces, aleros equivalentes, día más cálido |
-| 007 | [[classes/007-CasoBaseAleros]] | Caso base + variantes (estudio paramétrico), workflow del proyecto final, comparación en Python (función de carga, renombrado custom, plot color/estilo), trayectoria solar, bugs recurrentes |
+| 007 | [[classes/007-CasoBaseAleros]] | Caso base + variantes (estudio paramétrico), workflow del proyecto final, comparación en Python, trayectoria solar, bugs recurrentes |
+| 008 | [[classes/008-ShadingVentanas]] | Sunlit Fraction y resolución del bug de la 007, algoritmo de sombreamiento, enfriamiento radiativo al cielo, grados-hora de disconfort, estructura de libretas |
+| 009 | [[classes/009-AireAcondicionadoSetPoints]] | Aire acondicionado ideal, schedules, setpoints (T constante / banda / hackeado), posición del aislante, crítica a NOM y Cool Biz Japón |
+| 010 | [[classes/010-EnerHabitatParte1]] | Herramienta EnerHabitat (web + paquete Python), temperatura sol-aire, estado oscilatorio permanente, factor de decremento, demo con bug |
+| 011 | [[classes/011-EnerHabitatParte2]] | Asistente virtual del curso (RAG + Telegram), fix del bug pandas 3.0, estudio paramétrico en Python, anti-patrones (referencias compartidas, NumPy vs DataFrame), tarea final |
 
 ## Conceptos
 
@@ -63,13 +67,26 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 - [[concepts/Caso-Base]]
 - [[concepts/Estudio-Parametrico]]
 - [[concepts/Trayectoria-Solar]]
+- [[concepts/Sunlit-Fraction]]
+- [[concepts/Algoritmo-Sombreamiento]]
+- [[concepts/Enfriamiento-Radiativo-Cielo]]
+- [[concepts/Grados-Hora-Disconfort]]
+- [[concepts/Aire-Acondicionado-Ideal]]
+- [[concepts/Schedules]]
+- [[concepts/Setpoint]]
+- [[concepts/Posicion-Aislante]]
+- [[concepts/Temperatura-Sol-Aire]]
+- [[concepts/Estado-Oscilatorio-Permanente]]
+- [[concepts/Factor-de-Decremento]]
+- [[concepts/Asistente-Virtual-RAG]]
 
 ## Herramientas
 
 - [[tools/Open-Studio]]
 - [[tools/EnergyPlus]]
 - [[tools/Python]]
-- [[tools/ear-tools]]
+- [[tools/iertools]]
+- [[tools/EnerHabitat]]
 
 ## Procedimientos
 
@@ -87,10 +104,19 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 - [[procedures/Agregar-Ventanas-OpenStudio]]
 - [[procedures/Agregar-Aleros-OpenStudio]]
 - [[procedures/Comparar-Simulaciones-Python]]
+- [[procedures/Auditar-Sombreamiento-Ventanas]]
+- [[procedures/Crear-Schedule-Temperatura]]
+- [[procedures/Configurar-Aire-Acondicionado-Ideal]]
+- [[procedures/Usar-EnerHabitat-Web]]
+- [[procedures/Usar-EnerHabitat-Python]]
 
 ## Libretas Jupyter procesadas
 
-_(ninguna aún)_
+| # | Página | Tema |
+|---|--------|------|
+| 001 | [[notebooks/001_EDA]] | Primera demo de `iertools.read_sql`: cargar SQL, auditar constructions, plot doble panel |
+| 002 | [[notebooks/002_EDA_EPW]] | `iertools.read_epw`: workaround manual del 29-feb, exploración con `subplots=True`, resample mensual |
+| 003 | [[notebooks/003_EDA]] | EDA del caso base con 2 zonas térmicas (ESTE, OESTE); patrón del día más cálido; antipatrón de frecuencias mezcladas que crean NaNs |
 
 ## Log
 

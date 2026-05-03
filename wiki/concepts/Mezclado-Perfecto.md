@@ -59,7 +59,7 @@ El objetivo del taller es **evaluar el impacto relativo** de estrategias bioclim
 
 ## Variable de output asociada
 
-La temperatura uniforme de la zona se reporta como `Zone Mean Air Temperature` (o el alias `T_<zona>` en `ear_tools`). Detalle del catálogo en [[Variables-Output-EnergyPlus]].
+La temperatura uniforme de la zona se reporta como `Zone Mean Air Temperature` (o el alias `T_<zona>` en `iertools`). Detalle del catálogo en [[Variables-Output-EnergyPlus]].
 
 > Existe también `Zone Air Temperature` — casi idéntica, solo difiere en simulaciones con modelos de aire detallado (no se usan en el curso).
 

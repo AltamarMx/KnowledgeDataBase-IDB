@@ -3,7 +3,7 @@ title: Radiación de Onda Larga
 type: concepto
 tags: [concepto, radiacion, infrarrojo, balance-calor]
 aliases: [long wave radiation, LWR, onda larga, radiacion infrarroja]
-clases: [002]
+clases: [002, 008]
 updated: 2026-05-02
 ---
 
@@ -46,11 +46,13 @@ Energy Plus calcula $T_{ground}$ internamente.
 
 ### 2. Sky (cielo)
 
-> **Insight central:** el cielo tiene temperatura efectiva **muy baja** — acercándose al cero absoluto a través de capas atmosféricas en una noche despejada.
+> **Insight central:** el cielo tiene temperatura efectiva **muy baja** — típicamente **−15 °C** en una noche despejada (puede llegar a −30 °C en climas muy secos).
 >
 > Cualquier objeto que "vea" al cielo **se enfría** por intercambio de onda larga. De noche, una superficie expuesta al cielo puede llegar a **temperaturas inferiores a la del aire ambiente** — fenómeno aprovechable para enfriamiento radiativo.
 
-La temperatura efectiva del cielo depende de la humedad, las nubes y la cantidad de cielo cubierto.
+La temperatura efectiva del cielo depende de la humedad, las nubes y la cantidad de cielo cubierto. Las **nubes** elevan T efectiva del cielo (no son tan frías) — las noches más frías son las despejadas.
+
+Detalle del fenómeno y aplicaciones modernas en [[Enfriamiento-Radiativo-Cielo]].
 
 ### 3. Air (aire)
 
@@ -108,3 +110,4 @@ Para la mayoría de pinturas y acabados de construcción, ε ~ 0.85-0.95 (no hay
 ## Clases relacionadas
 
 - [[../classes/002-ConceptosBasicosBalancesCalor]] — introducción al concepto y a las cuatro fuentes
+- [[../classes/008-ShadingVentanas]] — el cielo a −15 °C como sumidero radiativo; enfriamiento radiativo pasivo

@@ -1,9 +1,9 @@
 ---
 title: Comparar simulaciones (caso base vs variantes) en Python
 type: procedimiento
-tags: [procedimiento, python, ear-tools, comparacion, caso-base, variantes, plotting]
+tags: [procedimiento, python, iertools, comparacion, caso-base, variantes, plotting]
 aliases: [comparar simulaciones, caso base variante, plotting comparativo]
-clases: [007]
+clases: [007, 008]
 updated: 2026-05-02
 ---
 
@@ -15,14 +15,14 @@ Procedimiento para cargar **dos o más** simulaciones en una libreta, alinear su
 
 - **[[../concepts/Caso-Base|Caso base]] congelado** y al menos una variante corrida.
 - Ambas simulaciones generaron las **mismas variables** de output (con los mismos nombres). Si difieren, las comparaciones no son válidas.
-- Entorno Python con `ear_tools` listo. Ver [[Setup-Entorno-Python-uv]].
+- Entorno Python con `iertools` listo. Ver [[Setup-Entorno-Python-uv]].
 
 ## 1. Imports
 
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
-from ear_tools.read import read_sql
+from iertools.read import read_sql
 from dateutil.parser import parse
 ```
 
@@ -60,7 +60,7 @@ def carga_df(f):
 
 ### Por qué `alias=False` y renombrar manualmente
 
-[[../tools/ear-tools|`ear_tools`]] con `alias=True` da nombres genéricos (`T_<zona>`, `TO`, etc.) — pero **no** sabe los nombres custom de superficies (`vNorte`, `vOeste`, `techo`). Para esos hay que renombrar a mano. Mezclar `alias=True` y un diccionario de renombrado custom termina mal — mejor un solo paso de renombrado.
+[[../tools/iertools|`iertools`]] con `alias=True` da nombres genéricos (`T_<zona>`, `TO`, etc.) — pero **no** sabe los nombres custom de superficies (`vNorte`, `vOeste`, `techo`). Para esos hay que renombrar a mano. Mezclar `alias=True` y un diccionario de renombrado custom termina mal — mejor un solo paso de renombrado.
 
 ### Construir el diccionario sin escribir a mano
 
@@ -107,8 +107,9 @@ Si los primeros valores coinciden **exactamente**, sospecha:
 - Las dos simulaciones cargan el mismo SQL (typo en uno de los paths).
 - Una de las simulaciones no aplicó el cambio (el bug del piso adiabático que se revierte — ver [[Debuggear-Simulacion-OpenStudio]]).
 - Las protecciones no llegaron al IDF (caso real de la clase 007 que el profesor no logró depurar en vivo).
+- **Estás comparando radiación incidente sobre ventanas** — esa variable no refleja sombreamiento en sub-superficies (resuelto en clase 008). Pedir `Surface Outside Face Sunlit Fraction` y la radiación sobre el muro padre. Ver [[Auditar-Sombreamiento-Ventanas]].
 
-> El profesor cierra la clase 007 con dos simulaciones que dan resultados casi iguales. Su primera sospecha: revisar el flujo de datos antes de culpar a Energy Plus.
+> El profesor cierra la clase 007 con dos simulaciones que dan resultados casi iguales. Su primera sospecha: revisar el flujo de datos antes de culpar a Energy Plus. La clase 008 resuelve el bug: las simulaciones SÍ eran distintas, pero la variable elegida no mostraba el efecto.
 
 ## 5. Filtrar columnas con list comprehension
 
@@ -237,3 +238,4 @@ Calcular grados-hora cálidos/fríos para cada caso y comparar — ver [[EDA-Arc
 ## Clases relacionadas
 
 - [[../classes/007-CasoBaseAleros]] — primera demo en vivo del flujo (con bug no resuelto al final)
+- [[../classes/008-ShadingVentanas]] — resolución del bug: la variable de radiación incidente no refleja sombreamiento en sub-superficies

@@ -71,17 +71,17 @@ Registro de todas las ingestas y mantenimientos de la wiki.
 - **Fuente:** `raw/videos/005_PrimerAnalisisSimulacionesCoPython.md` → [[classes/005-AnalisisSimulacionesPython]]
 - **Creados:**
   - Conceptos nuevos: `RDD-Variables-Disponibles`, `Variables-Output-EnergyPlus`, `Temperatura-Operativa`, `Capa-Limite-Atmosferica`, `Confort-Adaptativo`
-  - Herramienta nueva: `tools/ear-tools.md` (paquete del grupo IER)
+  - Herramienta nueva: `tools/iertools.md` (paquete del grupo IER)
   - Procedimientos nuevos: `Setup-Entorno-Python-uv`, `Solicitar-Output-Variables-Measures`, `Analizar-Resultados-Python`, `EDA-Archivo-EPW`
 - **Actualizados:**
   - `Mezclado-Perfecto` — variable `Zone Mean Air Temperature` como output asociado
   - `Confort-Termico` — modelos PMV vs adaptativo, métricas (% confort, grados-hora)
-  - `Salida-SQL-EnergyPlus` — confirmado el paquete `ear_tools`; problemas concretos del CSV (`24:00`, numeración de folders); alias
+  - `Salida-SQL-EnergyPlus` — confirmado el paquete `iertools`; problemas concretos del CSV (`24:00`, numeración de folders); alias
   - `Mensajes-EnergyPlus` — archivos hermanos del `.err` (`.rdd`, `.mdd`, `.sql`, `.csv`, `.htm`, `.eio`)
   - `Measures` — caso concreto de Reporting Measures (`Add Output Variable`, `Create CSV Output`)
   - `tools/Open-Studio.md` — secciones BCL, pedir variables al output (vías), `eplusout.rdd` en Show Simulation
   - `tools/EnergyPlus.md` — RDD/MDD/EIO, pedir variables al output, capa límite atmosférica
-  - `tools/Python.md` — stack ampliado, setup uv detallado, patrones útiles (subplots, dateutil + Timedelta, resample), `ear_tools`
+  - `tools/Python.md` — stack ampliado, setup uv detallado, patrones útiles (subplots, dateutil + Timedelta, resample), `iertools`
   - `procedures/Crear-Primera-Simulacion-OpenStudio.md` — referencia a Solicitar-Output-Variables-Measures
   - `procedures/Debuggear-Simulacion-OpenStudio.md` — verificar variables solicitadas en RDD/CSV/SQL
   - `index.md` — clase 005, 5 conceptos nuevos, 1 herramienta nueva, 4 procedimientos nuevos
@@ -124,3 +124,105 @@ Registro de todas las ingestas y mantenimientos de la wiki.
   - `procedures/Debuggear-Simulacion-OpenStudio.md` — bugs recurrentes a chequear primero; debugging de simulaciones aparentemente idénticas
   - `procedures/Agregar-Aleros-OpenStudio.md` — anécdota Paloma de validación
   - `index.md` — clase 007, 3 conceptos nuevos, 1 procedimiento nuevo
+
+### Ingesta: clase 008
+
+- **Fuente:** `raw/videos/008_ShadingEnVentanas.md` → [[classes/008-ShadingVentanas]]
+- **Creados:**
+  - Conceptos nuevos: `Sunlit-Fraction`, `Algoritmo-Sombreamiento`, `Enfriamiento-Radiativo-Cielo`, `Grados-Hora-Disconfort`
+  - Procedimiento nuevo: `Auditar-Sombreamiento-Ventanas`
+- **Actualizados:**
+  - `Variables-Output-EnergyPlus` — `Sunlit Fraction` y `Sunlit Area`; nota crítica sobre sub-superficies (la radiación incidente no refleja sombreamiento en ventanas)
+  - `Superficies-de-Sombramiento` — algoritmo y atenuación selectiva (directa via SF, difusa via factores de vista)
+  - `Confort-Adaptativo` — métricas de evaluación, anti-patrones; grados-hora como métrica principal
+  - `Mensajes-EnergyPlus` — warning "many overlapping shadows"; reflexión 10:2 sobre cuándo culpar a E+
+  - `Caricatura-Computacional` — Sunlit Fraction multiplicativa; sombreamiento solo bloquea directa
+  - `Radiacion-Onda-Larga` — T del cielo a −15°C como sumidero radiativo
+  - `procedures/Solicitar-Output-Variables-Measures.md` — Sunlit Fraction al catálogo
+  - `procedures/Comparar-Simulaciones-Python.md` — sospechar variable de radiación en sub-superficies si los casos salen iguales
+  - `procedures/Estructura-Proyecto-Simulacion.md` — estructura de libretas Jupyter del proyecto final (4 libretas + unificadora)
+  - `procedures/EDA-Archivo-EPW.md` — refinamiento del cálculo de grados-hora con anti-patrón de sumar
+  - `index.md` — clase 008, 4 conceptos nuevos, 1 procedimiento nuevo
+
+### Ingesta: clase 009
+
+- **Fuente:** `raw/videos/009_AireAcondicionado_SetPoints.md` → [[classes/009-AireAcondicionadoSetPoints]]
+- **Creados:**
+  - Conceptos nuevos: `Aire-Acondicionado-Ideal`, `Schedules`, `Setpoint`, `Posicion-Aislante`
+  - Procedimientos nuevos: `Crear-Schedule-Temperatura`, `Configurar-Aire-Acondicionado-Ideal`
+- **Actualizados:**
+  - `Caricatura-Computacional` — Ideal Air Loads como caricatura de HVAC (eficiencia 100%, sin ductos)
+  - `Sistemas-Constructivos` — orden importa en modelos dependientes del tiempo; referencia a Posicion-Aislante
+  - `Variables-Output-EnergyPlus` — variables de Ideal Air Loads (cooling/heating energy y rate, thermostat setpoint)
+  - `Confort-Adaptativo` — setpoint óptimo desde el modelo adaptativo + anécdota Cool Biz
+  - `procedures/Solicitar-Output-Variables-Measures.md` — variables de AC al catálogo
+  - `procedures/Analizar-Resultados-Python.md` — patrones de resample mensual, gráfica de barras, workaround ylim
+  - `index.md` — clase 009, 4 conceptos nuevos, 2 procedimientos nuevos
+
+### Ingesta: clase 010
+
+- **Fuente:** `raw/videos/010_EnerHabitat_Parte1.md` → [[classes/010-EnerHabitatParte1]]
+- **Creados:**
+  - Conceptos nuevos: `Temperatura-Sol-Aire`, `Estado-Oscilatorio-Permanente`, `Factor-de-Decremento`
+  - Herramienta nueva: `tools/EnerHabitat.md` (paquete Python + web app del IER)
+  - Procedimientos nuevos: `Usar-EnerHabitat-Web`, `Usar-EnerHabitat-Python`
+- **Actualizados:**
+  - `Caricatura-Computacional` — caricaturas de EnerHabitat (un solo muro, día representativo, T sol-aire encapsulada)
+  - `Posicion-Aislante` — EnerHabitat como herramienta primaria de evaluación
+  - `Confort-Adaptativo` — uso de Humphreys-Nicol en EnerHabitat para zona de confort
+  - `Warm-up-Period` — comparación con el oscilatorio permanente de EnerHabitat
+  - `procedures/Setup-Entorno-Python-uv.md` — `enerhabitat` como paquete opcional
+  - `index.md` — clase 010, 3 conceptos nuevos, 1 herramienta nueva, 2 procedimientos nuevos
+
+### Ingesta: clase 011
+
+- **Fuente:** `raw/videos/011_EnerHabitat_Parte2.md` → [[classes/011-EnerHabitatParte2]]
+- **Creados:**
+  - Concepto nuevo: `Asistente-Virtual-RAG` (asistente del curso con OpenCode + Claude + Telegram)
+- **Actualizados:**
+  - `Caricatura-Computacional` — detalles del cuarto idealizado de EnerHabitat (2.5 m, 200 elementos, h_c específicos de NOM-008/020)
+  - `Temperatura-Sol-Aire` — "susto feliz" del primer time step (radiación = 0); asociación T_sa ↔ wall específico (anti-patrón de pegar T_sa entre walls distintos)
+  - `Factor-de-Decremento` — uso en estudios paramétricos en Python
+  - `procedures/Usar-EnerHabitat-Python.md` — API verificada en 0.1.9 (fix del bug pandas 3.0); `solve()` vs `solve_ac()`; `materials.ini` auto-detectado; `config.h0` y bug de configuración global; patrón de loop paramétrico; anti-patrones (`layers` vs `absorptance`, sobreexplicar resultados raros)
+  - `procedures/Analizar-Resultados-Python.md` — anti-patrones Python (referencias compartidas, NumPy vs DataFrame, Numba, fragilidad Jupyter)
+  - `index.md` — clase 011, 1 concepto nuevo, fin del taller
+
+### Ingesta: notebooks 001 + 002 + corrección masiva del paquete
+
+- **Fuentes:**
+  - `raw/notebooks/001_EDA.ipynb` → [[notebooks/001_EDA]]
+  - `raw/notebooks/002_EDA_EPW.ipynb` → [[notebooks/002_EDA_EPW]]
+- **Creados:**
+  - Sección `wiki/notebooks/` con páginas para 001 y 002.
+- **Hallazgo crítico — corrección de nombre del paquete:**
+  - El paquete real es **`iertools`** (de "IER tools"), no `ear_tools` ni `ear-tools`.
+  - Las primeras transcripciones automáticas de las clases 005-011 capturaron mal la pronunciación.
+  - **Renombrado**: `wiki/tools/ear-tools.md` → `wiki/tools/iertools.md`. Contenido reescrito.
+  - **Reemplazo masivo** en 22 archivos: `ear_tools` / `ear-tools` → `iertools` (preservando aliases en el archivo principal).
+- **Correcciones a la API verificada en los notebooks:**
+  - `read_epw` **NO tiene parámetro `year`** — el reemplazo de año es manual con `.index.map(lambda x: x.replace(year=YYYY))`.
+  - El **workaround del 29-feb es responsabilidad del usuario**, no del paquete (filtrar antes del reemplazo si el año destino no es bisiesto).
+  - Índice del DataFrame de `read_epw` se llama `tiempo` (no `date`).
+  - Alias del EPW: solo renombra catálogo conocido (`To`, `RH`, `Ib`, `Id`, `Ig`, `WS`, `WD`, `P`); las 22+ columnas restantes conservan su nombre EPW original.
+  - `read_sql` con `alias=True` produce columnas como `Ti_<zona>` (Title Case), `To`, `Ib`, `Id` — confirmado en notebook 001.
+  - Método `get_construction()` (singular), no plural.
+- **Actualizados:**
+  - `procedures/EDA-Archivo-EPW.md` — flujo corregido sin `year=2006` ni `suppress_warnings=True`; workaround manual del 29-feb explícito; nota sobre alias parcial.
+  - `index.md` — sección "Libretas Jupyter procesadas" con 001 y 002.
+- **Pendiente futuro** (no bloqueante):
+  - ~25 menciones de aliases con casing antiguo (`df.TO`, `df.IB`, `df.ID`, `T_cubo`, `T_este`) en `procedures/Analizar-Resultados-Python.md`, `procedures/Configurar-Aire-Acondicionado-Ideal.md`, `tools/Python.md`, `classes/005-AnalisisSimulacionesPython.md`, `classes/006-DosZonasTermicasVentanasAleros.md`. La capitalización real es `To`, `Ib`, `Id`, `Ti_cubo`, `Ti_este`. Corregir en próxima sesión.
+
+### Ingesta: notebook 003
+
+- **Fuente:** `raw/notebooks/003_EDA.ipynb` → [[notebooks/003_EDA]]
+- **Naturaleza:** EDA del **caso base** del proyecto final (clase 007) con 2 zonas térmicas (ESTE, OESTE).
+- **Hallazgos para integrar:**
+  - **Frecuencias mezcladas** en output variables crean NaNs (~99% de la columna). Solo el último valor de cada intervalo horario se llena. Causa: `Zone Air Temperature` y `Zone Air Relative Humidity` solicitadas a `Hourly` mientras otras a `Timestep`.
+  - **Alias preserva mayúsculas** del nombre de zona en el OSM: `Ti_ESTE` (no `Ti_este`). Si la zona se nombró en mayúsculas en Open Studio, el alias también.
+  - **`Zone Mean Air Temperature`** sí recibe alias automático (`Ti_<zona>`); **`Zone Air Temperature`** (sin "Mean") **no** lo recibe — conserva nombre completo.
+  - **Patrón del día más cálido** confirmado: `df.To.resample("D").mean().idxmax()`.
+- **Creados:**
+  - `wiki/notebooks/003_EDA.md`
+- **Actualizados:**
+  - `concepts/Variables-Output-EnergyPlus.md` — sección "Frecuencias mezcladas — antipatrón" y "`Zone Mean Air Temperature` vs `Zone Air Temperature`".
+  - `index.md` — agregar 003 a notebooks.

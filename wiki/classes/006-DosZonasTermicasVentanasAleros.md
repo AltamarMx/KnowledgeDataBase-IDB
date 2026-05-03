@@ -28,7 +28,7 @@ Clase larga (≈2 horas) donde el profesor **rehace desde cero** un modelo con d
 - **Aleros y parteluces**: Projection Factor, qué SÍ y qué NO hacen físicamente, **limitación crítica de Open Studio** (alero del mismo ancho que la ventana) y workaround editando el OSM.
 - **Aleros equivalentes (celosías)** y el paper del grupo IER sobre la cafetería.
 - **Día más cálido**: por qué hay que explicitar el **criterio**.
-- Recapitulación del análisis Python (`ear_tools`, recorte temporal con `dateutil + Timedelta`).
+- Recapitulación del análisis Python (`iertools`, recorte temporal con `dateutil + Timedelta`).
 
 No hay tarea nueva — quien no haya entregado la anterior, debe entregarla.
 
@@ -270,7 +270,7 @@ Hecho en vivo al final de la clase:
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
-from ear_tools.read import read_sql
+from iertools.read import read_sql
 from dateutil.parser import parse
 
 dos = read_sql("../OSM/006_outputVars/run/eplusout.sql", alias=True).data

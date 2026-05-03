@@ -1,9 +1,9 @@
 ---
 title: EDA del archivo EPW
 type: procedimiento
-tags: [procedimiento, python, ear-tools, epw, eda, confort-adaptativo, clima]
+tags: [procedimiento, python, iertools, epw, eda, confort-adaptativo, clima]
 aliases: [eda epw, analizar epw, leer epw python]
-clases: [005]
+clases: [005, 008]
 updated: 2026-05-02
 ---
 
@@ -25,59 +25,57 @@ En `notebooks/`, crear `002_EDA_EPW.ipynb`.
 ```python
 import pandas as pd
 import matplotlib.pyplot as plt
-from ear_tools.read import read_epw
+from iertools.read import read_epw
 ```
 
 ## 3. Cargar el EPW
 
 ```python
 f = "../EPW/MX_MO_Cuernavaca.AP.766800_TMYx.2009-2023.epw"
-epw = read_epw(f, alias=True, year=2006, suppress_warnings=True)
+epw = read_epw(f, alias=True)
 ```
 
-### Por qué `year=2006`
+> **Importante**: `read_epw` **NO tiene parámetro `year`**. Lo que la transcripción de la clase 005 sugiere es un error — el reemplazo del año del TMY se hace manualmente. Confirmado en el notebook [[../notebooks/002_EDA_EPW]].
 
-El EPW es un [[../concepts/TMY]] — un Frankenstein con cada mes de un año real distinto. Sin `year`, el datetime tiene saltos:
+### Por qué hay que normalizar el año
+
+El EPW es un [[../concepts/TMY]] — un Frankenstein con cada mes de un año real distinto. Tal cual viene del archivo, el datetime tiene saltos entre meses:
 
 ```
 2010-01-31 23:00
 2018-02-01 00:00   ← salto al año del mes elegido para febrero
 ```
 
-…lo que rompe series temporales en pandas. Con `year=2006`, **todos** los timestamps quedan en el mismo año arbitrario:
+…lo que rompe series temporales en pandas (no se puede iterar continuamente). Hay que normalizar a un año único.
 
-```
-2006-01-31 23:00
-2006-02-01 00:00   ← continuo
-```
-
-`2006` es el default histórico de Open Studio para mantener consistencia con sus salidas.
-
-### Por qué `suppress_warnings=True`
-
-Cambiar el año emite un warning ("estás cambiando el año"). Si lo haces a propósito, `suppress_warnings=True` lo silencia. Si no lo silencias, sale un warning largo cada ejecución.
-
-## 4. Bug conocido — años bisiestos
-
-Si el EPW base usa un año bisiesto en su mes de febrero, `read_epw` con `year=2006` puede fallar al intentar reemplazar el año porque el 29-feb no existe en el año destino.
-
-**Workaround** mientras `ear_tools` no lo parchea:
+## 4. Workaround del 29-feb + reemplazo de año
 
 ```python
-epw_raw = read_epw(f, alias=True, suppress_warnings=True)  # sin year= todavía
+# Filtrar 29 de febrero antes (si el año destino no es bisiesto)
+epw = epw[~((epw.index.month == 2) & (epw.index.day == 29))]
 
-# Filtrar el 29 de febrero (si existe)
-mask_29feb = (epw_raw.index.month == 2) & (epw_raw.index.day == 29)
-epw_raw = epw_raw[~mask_29feb]
-
-# Ahora reemplazar año manualmente
-epw_raw.index = epw_raw.index.map(lambda x: x.replace(year=2006))
-epw = epw_raw
+# Reemplazar año de cada timestamp
+epw.index = epw.index.map(lambda x: x.replace(year=2023))
 ```
 
-Resultado: 8760 horas (año no bisiesto) en lugar de 8784.
+### Por qué filtrar el 29-feb antes
 
-> El profesor mencionó que parcheará esto en la próxima versión de `ear_tools`. Si tu versión ya lo tiene, `year=2006` directo funciona.
+Si el EPW base contiene un febrero proveniente de un año bisiesto (con 29 de febrero) y el año destino **no** es bisiesto:
+
+- `datetime(2020, 2, 29).replace(year=2023)` → **excepción** (29-feb no existe en 2023).
+
+Filtrar el 29-feb evita el crash. Pérdida: 24 horas de datos al año (despreciable para análisis bioclimático).
+
+Resultado: **8759 filas** (8760 − 1) en lugar de fallar.
+
+### Año destino — qué elegir
+
+Cualquier año arbitrario sirve. Convenciones:
+
+- **`2023`** — usado en el notebook 002.
+- **`2006`** — el default histórico de Open Studio cuando reporta resultados.
+
+Para **comparar simulaciones de E+ con datos del EPW** en una misma gráfica, conviene usar **el mismo año** en ambos lados. Si E+ reporta en 2006 y el EPW se normalizó a 2023, los plots no se alinean.
 
 ## 5. Inspección rápida con subplots
 
@@ -87,9 +85,20 @@ Una variable por subplot (lectura visual del año completo):
 epw.plot(subplots=True, figsize=(12, 20))
 ```
 
-Genera un panel por columna (T, RH, IB, ID, WS, WD, P, ...). **No está documentado oficialmente** en pandas pero funciona ("un huevo de Pascua en pandas").
+Genera un panel por columna (T, RH, Ib, Id, WS, WD, P, etc.). **No está documentado oficialmente** en pandas pero funciona ("un huevo de Pascua en pandas").
 
-> Si los paneles aparecen con años distintos en el eje X (2010, 2018, 2019…), olvidaste `year=2006`.
+> Si los paneles aparecen con años distintos en el eje X (2010, 2018, 2019…), olvidaste el reemplazo de año del paso 4.
+
+### Estructura del DataFrame
+
+- **Índice**: nombrado `tiempo`, datetimes horarios.
+- **Columnas**: 30+ del EPW estándar.
+
+`alias=True` renombra solo el catálogo conocido (`To`, `RH`, `Ib`, `Id`, `Ig`, `WS`, `WD`, `P`). Las demás conservan el nombre original (`Dew Point Temperature`, `Aerosol Optical Depth`, etc.) — acceder con corchetes:
+
+```python
+epw["Dew Point Temperature"]
+```
 
 ## 6. Agregaciones temporales
 
@@ -142,7 +151,7 @@ ax.legend()
 Para evaluar el % del año en confort:
 
 ```python
-from ear_tools.read import read_sql
+from iertools.read import read_sql
 
 sim = read_sql("../OSM/<caso>/run/eplusout.sql", alias=True)
 df = sim.data
@@ -157,22 +166,33 @@ porcentaje_confort = en_confort.mean() * 100
 print(f"% del año en confort: {porcentaje_confort:.1f}")
 ```
 
-## 9. Grados-hora de disconfort (preview de tareas siguientes)
+## 9. Grados-hora de disconfort (métrica central del proyecto final)
+
+Detalle del concepto en [[../concepts/Grados-Hora-Disconfort]]. Cálculo:
 
 ```python
-# Disconfort cálido: cuánto excede la banda superior
-gh_calido = ((df.T_cubo - (T_neut_at_t + delta)).clip(lower=0) * (10/60)).sum()
+import numpy as np
 
-# Disconfort frío: cuánto cae debajo de la banda inferior
-gh_frio = (((T_neut_at_t - delta) - df.T_cubo).clip(lower=0) * (10/60)).sum()
+dt = 10 / 60  # paso de 10 min en horas
 
-print(f"Grados-hora cálidos:   {gh_calido:.0f} °C·h")
-print(f"Grados-hora fríos:     {gh_frio:.0f} °C·h")
+# Variable de análisis — preferir T_op si la pediste; T del aire es aproximación
+T_int = df.T_cubo
+
+# Banda de confort (T_neut_at_t mapeada por mes — ver paso 8)
+T_sup = T_neut_at_t + delta
+T_inf = T_neut_at_t - delta
+
+# Grados-hora cálidos y fríos — separados
+gh_calido = np.maximum(T_int - T_sup, 0).sum() * dt
+gh_frio   = np.maximum(T_inf - T_int, 0).sum() * dt
+
+print(f"Grados-hora cálidos:   {gh_calido:>8.0f} °C·h")
+print(f"Grados-hora fríos:     {gh_frio:>8.0f} °C·h")
 ```
 
-(Multiplicador `10/60` porque el paso temporal es 10 minutos = 1/6 de hora.)
+> **No sumar** GH cálido + GH frío en una sola métrica — oculta el trade-off (estrategias que reducen calor a menudo aumentan frío).
 
-Esto será una de las métricas centrales del proyecto final.
+Para el reporte del proyecto final: tabla comparativa caso base vs variantes con columnas separadas para GH cálido y GH frío, y diferencia relativa vs base. Detalle en [[../concepts/Grados-Hora-Disconfort]] sección "Reporte comparativo".
 
 ## Otras herramientas de comparación
 
@@ -181,6 +201,7 @@ Esto será una de las métricas centrales del proyecto final.
 ## Clases relacionadas
 
 - [[../classes/005-AnalisisSimulacionesPython]] — primera demo del análisis del EPW
+- [[../classes/008-ShadingVentanas]] — métrica grados-hora como métrica central del proyecto final, anti-patrón de sumar cálido+frío
 
 ## Procedimientos relacionados
 

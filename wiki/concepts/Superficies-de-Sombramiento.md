@@ -3,7 +3,7 @@ title: Superficies de Sombramiento (Aleros y Parteluces)
 type: concepto
 tags: [concepto, sombreamiento, aleros, parteluces, fins, overhangs, celosias, energyplus]
 aliases: [aleros, overhangs, fins, parteluces, sombramiento, shading surfaces, celosias]
-clases: [006]
+clases: [006, 008]
 updated: 2026-05-02
 ---
 
@@ -135,6 +135,22 @@ Además de aleros adosados a ventanas, en E+ se pueden agregar **superficies de 
 
 Mismo comportamiento físico: bloquean radiación, no transfieren calor, no obstruyen viento. Son la única forma de modelar el efecto sombreador de un vecino sin convertirlo en una zona térmica adicional.
 
+## Cómo se aplica el sombreamiento al balance térmico
+
+> El sombreamiento **no se reporta** en la variable `Surface Outside Face Incident Solar Radiation` sobre ventanas. Se aplica multiplicativamente al hacer el balance.
+
+Mecanismo:
+
+| Componente de radiación | Atenuación |
+|--------------------------|-------------|
+| **Directa** ($I_b$) | Multiplicada por `Sunlit Fraction` (0 a 1) |
+| **Difusa** ($I_d$) | Atenúa por modificación del **factor de vista** entre la superficie y el cielo |
+| **Reflejada del ground** ($I_g$) | Atenúa por modificación del factor de vista al ground |
+
+Detalle en [[Sunlit-Fraction]] y [[Algoritmo-Sombreamiento]].
+
+**Implicación**: para auditar el efecto de un alero sobre una ventana, pedir `Surface Outside Face Sunlit Fraction` — no la radiación incidente. Procedimiento en [[../procedures/Auditar-Sombreamiento-Ventanas]].
+
 ## Estrategias del proyecto final
 
 > Para el proyecto final el profesor recomienda **alero horizontal + parteluz vertical** combinados.
@@ -152,3 +168,4 @@ Las orientaciones E/W son las más complicadas — un alero horizontal solo no l
 ## Clases relacionadas
 
 - [[../classes/006-DosZonasTermicasVentanasAleros]] — introducción al objeto, Projection Factor, limitación de Open Studio, aleros equivalentes y celosías
+- [[../classes/008-ShadingVentanas]] — algoritmo, Sunlit Fraction, atenuación selectiva entre directa/difusa, auditoría correcta

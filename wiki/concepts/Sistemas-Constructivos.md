@@ -3,7 +3,7 @@ title: Sistemas Constructivos
 type: concepto
 tags: [concepto, materiales, construccion]
 aliases: [construction, sistema constructivo]
-clases: [001, 002, 003, 004, 006]
+clases: [001, 002, 003, 004, 006, 009]
 updated: 2026-05-02
 ---
 
@@ -20,6 +20,14 @@ Secuencia ordenada de **materiales** (cada uno con propiedades térmicas y un es
 Cada capa tiene sus propias propiedades térmicas (conductividad, densidad, calor específico, absortancia/emitancia para superficies expuestas) y un espesor. El sistema constructivo recibe un nombre por el usuario y se asigna a una o más superficies de la envolvente.
 
 > **Convención de orden:** los sistemas constructivos se describen **de exterior a interior**. La primera capa es la que da al exterior (o a otra zona); la última es la interior de la zona analizada.
+
+### El orden importa más de lo que parece
+
+En **modelos independientes del tiempo** (resistencia térmica $U = 1/R$): el orden de capas no afecta la R total → da igual.
+
+En **modelos dependientes del tiempo** (Energy Plus): el orden **sí importa**. La onda térmica viaja del exterior al interior pasando por cada capa secuencialmente. La posición del aislante respecto a la masa térmica controla cómo la edificación responde al clima — efecto de **inercia y desfase**.
+
+Detalle en [[Posicion-Aislante]]. La NOM-008 mexicana **no especifica la posición** del aislante — limitación de la norma.
 
 ## Cadena de definición en Energy Plus / Open Studio
 
@@ -97,3 +105,4 @@ Espesores < 1 mm. Efecto térmico por conducción **despreciable**. Lo que impor
 - [[../classes/003-MiPrimeraSimulacion]] — flujo concreto Materials → Construction → Surface en Open Studio
 - [[../classes/004-InterpretandoMensajesConstructionSets]] — Construction Sets como atajo de asignación masiva
 - [[../classes/006-DosZonasTermicasVentanasAleros]] — materiales de ventana, relación ρ-k, pinturas e impermeabilizantes
+- [[../classes/009-AireAcondicionadoSetPoints]] — posición del aislante en sistemas dependientes del tiempo; crítica a NOM-008

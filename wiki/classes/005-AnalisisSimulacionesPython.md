@@ -5,7 +5,7 @@ clase: 005
 profesor: Guillermo Barrios del Valle
 fuente: raw/videos/005_PrimerAnalisisSimulacionesCoPython.md
 fecha_ingesta: 2026-05-02
-tags: [clase, python, ear-tools, sql, rdd, measures, confort-adaptativo, eda]
+tags: [clase, python, iertools, sql, rdd, measures, confort-adaptativo, eda]
 aliases: [Clase 005]
 ---
 
@@ -25,7 +25,7 @@ Primera clase enfocada en **análisis de datos**. Se justifica por qué el anál
 La clase recorre tres bloques en orden:
 
 1. **Pedir las variables correctas a la simulación** — leer el archivo RDD para descubrir qué hay disponible, copiar nombres exactos, configurar measures `Add Output Variable` y `Create CSV Output` del BCL.
-2. **Cargar los resultados en Python** — `ear_tools.read_sql` lee el SQL nativo (más robusto que el CSV), aplica alias cortos, expone `.data` (DataFrame) y permite auditar sistemas constructivos.
+2. **Cargar los resultados en Python** — `iertools.read_sql` lee el SQL nativo (más robusto que el CSV), aplica alias cortos, expone `.data` (DataFrame) y permite auditar sistemas constructivos.
 3. **Análisis y plotting** — gráfica de doble panel con `plt.subplots(2, 1, sharex=True)`, recorte temporal con `dateutil.parser.parse + pd.Timedelta`, análisis del EPW con `read_epw`, introducción a confort adaptativo (Humphreys-Nicol).
 
 Hilo transversal: **narrativa computacional y reproducibilidad** — uv, ambientes virtuales, naming consistente, restart-and-run-all, versionado.
@@ -38,7 +38,7 @@ Tarea: **dos zonas térmicas** (este y oeste, sin ventanas todavía), con output
 - Conocer el **catálogo de variables** de salida más usadas (Site, Zone, Surface inside/outside). Ver [[../concepts/Variables-Output-EnergyPlus]].
 - Configurar measures **`Add Output Variable`** y **`Create CSV Output`** para pedir variables específicas. Ver [[../procedures/Solicitar-Output-Variables-Measures]].
 - Configurar un entorno Python reproducible con **uv** + dependencias del taller. Ver [[../procedures/Setup-Entorno-Python-uv]].
-- Cargar el SQL de E+ con **`ear_tools.read_sql`** y producir gráficas básicas. Ver [[../procedures/Analizar-Resultados-Python]].
+- Cargar el SQL de E+ con **`iertools.read_sql`** y producir gráficas básicas. Ver [[../procedures/Analizar-Resultados-Python]].
 - Hacer un **EDA del EPW** y calcular zona de confort adaptativo. Ver [[../procedures/EDA-Archivo-EPW]].
 - Entender el concepto de **temperatura operativa** y por qué importa cuando hay fuentes radiantes. Ver [[../concepts/Temperatura-Operativa]].
 
@@ -136,7 +136,7 @@ Stack del taller:
 cd ~/.../tarea_02_dos_zonas/
 uv init
 uv add pandas jupyter matplotlib python-dateutil
-uv add git+https://github.com/<grupo-IER>/ear-tools.git
+uv add git+https://github.com/<grupo-IER>/iertools.git
 uv run jupyter notebook
 ```
 
@@ -157,12 +157,12 @@ Procedimiento completo en [[../procedures/Setup-Entorno-Python-uv]].
 
 > "Linux ya no te deja instalar cosas a menos que sean en ambientes virtuales. uv es lo mejor que hay."
 
-### El paquete `ear_tools`
+### El paquete `iertools`
 
-Paquete del grupo de Energía en Edificaciones del IER. Detalle en [[../tools/ear-tools]].
+Paquete del grupo de Energía en Edificaciones del IER. Detalle en [[../tools/iertools]].
 
 ```python
-from ear_tools.read import read_sql, read_epw
+from iertools.read import read_sql, read_epw
 ```
 
 #### `read_sql(file, alias=True)`
@@ -251,7 +251,7 @@ E+ pone `2006` por default en todos los timestamps (independiente del año real 
 ### Análisis del EPW
 
 ```python
-from ear_tools.read import read_epw
+from iertools.read import read_epw
 
 epw = read_epw("../EPW/cuernavaca.epw", alias=True, year=2006, suppress_warnings=True)
 ```
@@ -357,14 +357,14 @@ Conceptos nuevos:
 
 Conceptos profundizados:
 
-- [[../concepts/Salida-SQL-EnergyPlus]] — confirmado el paquete `ear_tools` y los problemas concretos del CSV
+- [[../concepts/Salida-SQL-EnergyPlus]] — confirmado el paquete `iertools` y los problemas concretos del CSV
 - [[../concepts/Mezclado-Perfecto]] — variable `Zone Mean Air Temperature`
 - [[../concepts/Confort-Termico]] — modelo adaptativo
 - [[../concepts/Measures]] — caso concreto de Reporting Measures
 
 Herramienta nueva:
 
-- [[../tools/ear-tools]] — paquete del grupo
+- [[../tools/iertools]] — paquete del grupo
 
 ## Conexiones
 
