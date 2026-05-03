@@ -117,6 +117,9 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 | 001 | [[notebooks/001_EDA]] | Primera demo de `iertools.read_sql`: cargar SQL, auditar constructions, plot doble panel |
 | 002 | [[notebooks/002_EDA_EPW]] | `iertools.read_epw`: workaround manual del 29-feb, exploración con `subplots=True`, resample mensual |
 | 003 | [[notebooks/003_EDA]] | EDA del caso base con 2 zonas térmicas (ESTE, OESTE); patrón del día más cálido; antipatrón de frecuencias mezcladas que crean NaNs |
+| 004 | [[notebooks/004_Comparacion_ConSinVentanas]] | Comparación caso base vs con protecciones (clase 008); función reusable de carga; Sunlit Fraction; muro padre como referencia; `Mir-FACE` (mirror surfaces internas de E+) |
+| 005 | [[notebooks/005_revision_1setpoint]] | Caso `007_CB_aa` con AC en T constante (clase 009); filtro de año `index.year==2006`; análisis energético mensual y anual; OESTE consume 4× más cooling que ESTE |
+| 006 | [[notebooks/006_Adobe_con_sin_AC]] | Estudio paramétrico con EnerHabitat; **API real verificada** (`System`, `absortance`, `meanDay`, `Tsa`, `solveAC`); Adobe en Campeche; delta Morillón 1.25°C |
 
 ## Log
 

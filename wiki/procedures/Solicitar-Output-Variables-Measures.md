@@ -66,6 +66,12 @@ En la pestaña **Measures** del modelo:
    - **Key Value** → `*` para todas las superficies/zonas, o el **nombre específico** de la superficie/zona.
 
 > **Recomendación de frecuencia**: `Timestep` (paso temporal de simulación, default 6/hora). Con `Hourly` se pierde resolución y con `Detailed` se generan demasiados datos.
+>
+> **Nunca mezclar frecuencias**: si pides unas variables a `Timestep` y otras a `Hourly`, `iertools.read_sql` produce columnas con NaN en ~99% de las filas (alineación al índice de mayor resolución). Antipatrón observado en el [[../notebooks/003_EDA|notebook 003]].
+
+> **Cuidado con `*` como Key Value en variables de superficie**: cuando hay aleros, parteluces o superficies de sombreamiento en el modelo, E+ crea internamente **mirror surfaces** (`Mir-FACE 8`, `Mir-FACE 18`, etc.) que **aparecen en el output** cuando se usa `*`. El DataFrame puede explotar de 5-7 columnas a 30+. Caso real en el [[../notebooks/004_Comparacion_ConSinVentanas|notebook 004]]. Detalle en [[../concepts/Algoritmo-Sombreamiento]] sección "Mirror surfaces".
+>
+> **Solución**: nombrar las superficies clave (`Techo`, `vNorte`, `vOeste`, `pNorte`) en el OSM y usar el nombre específico como Key Value en lugar de `*`.
 
 5. **Repetir** el paso 2-4 por cada variable que se quiera. Cada variable necesita su **propio** measure `Add Output Variable`.
 

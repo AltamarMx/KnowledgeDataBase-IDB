@@ -180,6 +180,33 @@ Para extender el alero más allá del ancho de la ventana (limitación de Open S
 | Ambas SF son 0 todo el día | Día nublado en el EPW — escoger otro día con sol claro para auditar |
 | Diferencia muy pequeña en `T` interior | Ventana muy chica (poco efecto absoluto), o radiación dominada por difusa, o T del aire enmascara efecto radiativo local — usar [[Temperatura-Operativa]] |
 
+## Patrón confirmado — pedir radiación sobre el muro padre
+
+Vía alternativa al uso de `Sunlit Fraction`: **pedir la radiación incidente sobre el muro padre** (no la ventana). En muros opacos, `Surface Outside Face Incident Solar Radiation Rate per Area` **sí refleja** el sombreamiento — al contrario que en sub-superficies (ventanas).
+
+Patrón confirmado en el [[../notebooks/004_Comparacion_ConSinVentanas|notebook 004]]:
+
+```python
+# Comparar el muro padre que contiene la ventana norte
+ax.plot(sinv['FACE 6:Surface Outside Face Incident Solar Radiation Rate per Area (W/m2)'],
+        "g-", label="muro norte (sin protección)")
+ax.plot(conv['FACE 6:Surface Outside Face Incident Solar Radiation Rate per Area (W/m2)'],
+        "go", label="muro norte (con protección)")
+```
+
+### Cuál vía elegir
+
+| Vía | Ventaja | Desventaja |
+|-----|---------|------------|
+| `Sunlit Fraction` (ventana) | Variable explícita; valor 0-1 fácil de interpretar | Solo captura efecto sobre directa, no difusa |
+| Radiación incidente (muro padre) | Captura efecto neto (directa + difusa atenuada via factores de vista) | Requiere identificar el muro padre; el efecto se "promedia" sobre toda la superficie del muro, no solo la ventana |
+
+**Recomendación**: usar **ambas** vías cuando se quiera entender el efecto completo. La SF revela si el alero bloquea la directa; la radiación del muro padre revela si la atenuación de difusa también es significativa.
+
 ## Clases relacionadas
 
 - [[../classes/008-ShadingVentanas]] — descubrimiento del rol de la Sunlit Fraction
+
+## Notebooks relacionados
+
+- [[../notebooks/004_Comparacion_ConSinVentanas]] — patrón completo aplicado con `Sunlit Fraction` + radiación sobre muro padre

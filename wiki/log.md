@@ -226,3 +226,56 @@ Registro de todas las ingestas y mantenimientos de la wiki.
 - **Actualizados:**
   - `concepts/Variables-Output-EnergyPlus.md` — sección "Frecuencias mezcladas — antipatrón" y "`Zone Mean Air Temperature` vs `Zone Air Temperature`".
   - `index.md` — agregar 003 a notebooks.
+
+### Ingesta: notebook 004
+
+- **Fuente:** `raw/notebooks/004_Comparacion_ConSinVentanas.ipynb` → [[notebooks/004_Comparacion_ConSinVentanas]]
+- **Naturaleza:** Comparación caso base (`005_CBs`) vs con protecciones (`006_Protecciones`). Aplica el flujo de auditoría de sombreamiento de la clase 008.
+- **Hallazgos:**
+  - **`Mir-FACE` (mirror surfaces)**: superficies espejo internas que E+ crea para el cálculo de overlapping cuando hay shading. Aparecen como columnas en el output (`Mir-FACE 8`, `Mir-FACE 18`, etc.) cuando se usa `*` como Key Value. **No están en el OSM**. El caso con protecciones tenía 31 columnas vs ~10 en el caso base, mostrando la explosión.
+  - **Patrón color + marker** como alternativa al color + linestyle (`"g-"` para base, `"go"` para variante). Útil cuando las dos series están cercanas.
+  - **Vía alternativa de auditoría**: pedir radiación incidente sobre el **muro padre** (no la ventana) — en muros opacos sí refleja el sombreamiento.
+  - Confirmación del patrón Sunlit Fraction de la clase 008 con datos reales.
+- **Creados:**
+  - `wiki/notebooks/004_Comparacion_ConSinVentanas.md`
+- **Actualizados:**
+  - `concepts/Algoritmo-Sombreamiento.md` — sección "Mirror surfaces (`Mir-FACE`)" con explicación, cuándo aparecen, qué hacer.
+  - `procedures/Auditar-Sombreamiento-Ventanas.md` — vía alternativa pidiendo radiación sobre muro padre; tabla SF vs muro padre; cuándo elegir cada vía.
+  - `procedures/Solicitar-Output-Variables-Measures.md` — advertencia sobre frecuencias mezcladas; advertencia sobre `*` que genera Mir-FACE.
+  - `procedures/Comparar-Simulaciones-Python.md` — patrón color + marker como variante del color + linestyle.
+  - `index.md` — agregar 004 a notebooks.
+
+### Ingesta: notebook 005
+
+- **Fuente:** `raw/notebooks/005_revision_1setpoint.ipynb` → [[notebooks/005_revision_1setpoint]]
+- **Naturaleza:** Caso `007_CB_aa` (caso base + Ideal Air Loads modo T constante 20 °C). Verificación de la simulación + análisis energético.
+- **Hallazgos:**
+  - **Patrón filtro de año**: `df = df[df.index.year == AÑO]` post-carga elimina el timestep extra de `2007-01-01 00:00:00` (cierre del año en E+).
+  - **Variables de Ideal Air Loads sin alias** — `iertools` no las renombra; nombre largo (`ESTE IDEAL LOADS AIR SYSTEM:Zone Ideal Loads Zone Total Cooling Energy (J)`).
+  - **OESTE = 4× ESTE en consumo** (23 GJ/año vs 5.8 GJ/año) — confirma desbalance por orientación.
+  - Bug menor: `range(13)` en lugar de `range(12)` en bar plot mensual.
+- **Creados:**
+  - `wiki/notebooks/005_revision_1setpoint.md`
+- **Actualizados:**
+  - `index.md` — agregar 005 a notebooks.
+
+### Ingesta: notebook 006
+
+- **Fuente:** `raw/notebooks/006_Adobe_con_sin_AC.ipynb` → [[notebooks/006_Adobe_con_sin_AC]]
+- **Naturaleza:** Estudio paramétrico con EnerHabitat (clase 011 — la libreta que falló en vivo y ahora corre con el fix de pandas 3.0). Adobe en Campeche con/sin AC, variando absortancia.
+- **Hallazgos críticos — API real de EnerHabitat verificada:**
+  - **`enerhabitat.System(enerhabitat.Location(epw_file))`** — clase real es `System`, no `Wall`.
+  - **`wall.absortance`** (sin "p") — typo del paquete. Calco del español "absortancia". `absorptance` no existe.
+  - **`wall.location.meanDay(month, year)`** — método de location, no atributo de wall. No existe `set_day()`.
+  - **`wall.Tsa()`** (T mayúscula) — no `tsa()`.
+  - **`wall.solveAC()`** (camelCase) — no `solve_ac()`.
+  - **Columnas del output**: `Ti` (interior — no `T_int`), **`Ta`** (ambiente — no `To`), `Tsa`, `Tn`, `DeltaTn`, `Is`, `Ig`, `Ib`, `Id`, `zenith`, `elevation`, `azimuth`, `equation_of_time`.
+  - **`DeltaTn = 1.25 °C`** en Campeche → **modelo de Morillón**, no Humphreys-Nicol/ASHRAE 55. Variable según oscilación local del clima.
+  - **`cooling_energy` y `heating_energy` son escalares** (J/(m²·día)) — no series temporales. No usar `.sum()`.
+  - **Concatenar Tsa al output**: el solver no lo incluye por default; `pd.concat([result, wall.Tsa().asfreq("10min")], axis=1)`.
+- **Creados:**
+  - `wiki/notebooks/006_Adobe_con_sin_AC.md`
+- **Actualizados (correcciones de API):**
+  - `procedures/Usar-EnerHabitat-Python.md` — código completo corregido con `System`, `absortance`, `location.meanDay`, `Tsa`, `solveAC`. Tabla de diferencias entre transcripción de clase y API real. Estudio paramétrico corregido. Recomendación de crear nuevo `wall` por iteración.
+  - `concepts/Confort-Adaptativo.md` — modelo de Morillón añadido como entrada en la tabla de modelos adaptativos. Sección dedicada explicando que `DeltaTn` es variable según oscilación local (1.25-4 °C), no fijo en 3.5 °C.
+  - `index.md` — agregar 006 a notebooks (cierra la lista de 6 notebooks del taller).

@@ -167,6 +167,27 @@ ax[1].set_xlim(f1, f2)
 - **Negro punteado** para la T exterior — referencia universal.
 - `ncol=3` en `legend()` distribuye la leyenda horizontalmente.
 
+### Variante — color + marker en lugar de color + linestyle
+
+Patrón alternativo confirmado en el [[../notebooks/004_Comparacion_ConSinVentanas|notebook 004]]:
+
+```python
+ax.plot(sinv['FACE 6:...'], "g-",  label="sin protección")
+ax.plot(conv['FACE 6:...'], "go",  label="con protección")
+```
+
+| Elemento | Caso base | Variante |
+|----------|-----------|----------|
+| Color | mismo (verde) | mismo (verde) |
+| Línea | `"-"` (sólida) | sin línea |
+| Marker | sin marker | `"o"` (círculos) |
+
+**Cuándo conviene**: cuando las dos series están **muy cercanas** y la línea dashed se confunde visualmente con la sólida. Los marcadores hacen más legible la comparación.
+
+**Cuándo NO conviene**: cuando hay **muchos puntos** (serie temporal de un día con paso de 10 minutos = 144 puntos). Los marcadores se densifican y el plot pierde claridad. Mejor línea dashed en ese caso.
+
+Ambos patrones son válidos según el contexto.
+
 ## 7. Recortar al día más cálido (caso típico)
 
 ```python

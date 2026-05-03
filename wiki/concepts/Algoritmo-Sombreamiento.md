@@ -91,6 +91,39 @@ Por eso al evaluar el desempeño de un alero conviene mirar:
 - Sunlit Fraction → fracción de directa bloqueada.
 - Radiación efectiva total (directa modulada + difusa atenuada).
 
+## Mirror surfaces (`Mir-FACE`) — superficies internas del solver
+
+Cuando E+ procesa un modelo con **superficies de sombramiento** (aleros, parteluces, vecinos), internamente crea **superficies espejo** para el cálculo del intercambio radiativo. En el output aparecen como columnas con prefijo **`Mir-FACE`**:
+
+```
+'FACE 8',        ← superficie original del modelo
+'Mir-FACE 8',    ← su mirror creada por el solver
+'FACE 18',
+'Mir-FACE 18',
+...
+```
+
+### Cuándo aparecen
+
+- Cuando se solicita una variable de superficie con `Key Value = *` (todas las superficies).
+- El solver las incluye porque, técnicamente, son superficies del modelo.
+
+### Qué NO son
+
+- **No están en el OSM**.
+- **No son superficies dibujadas** por el usuario.
+- Son **construcciones internas** del solver — equivalentes computacionales necesarios para el cálculo de overlapping en geometrías con shading.
+
+### Cómo manejarlas
+
+| Caso | Acción |
+|------|--------|
+| Análisis comparativo simple | **Ignorarlas** — usar columnas con nombres específicos (FACE N o renombradas con alias custom) |
+| Auditoría avanzada del sombreamiento | Estudiar — los `Mir-FACE` corresponden a las superficies específicas con sombras |
+| Reducir explosión de columnas | **No usar `*` como Key Value** — pedir cada variable con el nombre específico de la superficie |
+
+> **Detección visual**: en una simulación con protecciones, el output puede tener 30+ columnas (`FACE 1` ... `FACE 23` + `Mir-FACE 8` ... `Mir-FACE 23` + `SURFACE 1`). En el caso base sin protecciones suele tener < 10. La explosión es un síntoma de uso de `*` como Key Value. Confirmado en el [[../notebooks/004_Comparacion_ConSinVentanas|notebook 004]].
+
 ## Aplicación a iluminación natural
 
 E+ no es ideal para análisis fino de iluminación natural — la frecuencia de actualización de sombras (20 días default) suaviza efectos día-a-día. Para iluminación se prefiere **Radiance** con backward ray tracing horario. Detalle en [[Calculo-Sombramientos]].

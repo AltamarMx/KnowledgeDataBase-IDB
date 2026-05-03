@@ -53,6 +53,22 @@ $$
 | ASHRAE 55 adaptativo | 80% | 3.5 °C |
 | ASHRAE 55 adaptativo | 90% | 2.5 °C |
 | Humphreys-Nicol | 80% | ~3.5 °C |
+| **Morillón** (México) | 80% | **Variable según oscilación local** (1.25-4 °C) |
+
+### Modelo de Morillón — el ΔT mexicano
+
+[[../tools/EnerHabitat]] reporta `DeltaTn` que **NO** es el 3.5 fijo de Humphreys/ASHRAE — es el de **Morillón**, propuesto para climas mexicanos:
+
+> "La amplitud que propuso un Morillón. Es una amplitud que varía dependiendo de la amplitud de la oscilación de cada sitio."
+
+Lógica:
+
+- **Climas con oscilación diaria pequeña** (ej. Campeche tropical húmedo): la gente se adapta menos → banda angosta (~1.25 °C).
+- **Climas con oscilación grande** (ej. zonas áridas con noches frías): la gente tolera más → banda más ancha (~4 °C).
+
+En el [[../notebooks/006_Adobe_con_sin_AC]] se observa `DeltaTn = 1.25` para Campeche en mayo. Para zonas con mayor oscilación diaria, sería mayor.
+
+Trade-off: el modelo de Morillón es **más estricto** en climas estables, **más permisivo** en climas extremos. Filosofía coherente con la observación adaptativa real en México.
 
 ## Variable a evaluar
 

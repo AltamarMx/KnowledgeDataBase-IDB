@@ -68,35 +68,51 @@ Descargar de OneBuilding o usar uno propio. Detalle en [[Descargar-EPW-OneBuildi
 
 ## 4. Estructura básica del código (API verificada en 0.1.9)
 
+> **Importante**: la API real, verificada con el [[../notebooks/006_Adobe_con_sin_AC|notebook 006]], difiere de lo que se transcribió en clase. Las correcciones se reflejan abajo.
+
 ```python
-import enerhabitat
+import enerhabitat as eh
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# 1. Crear el wall (la inicialización geolocaliza con el EPW)
-wall = enerhabitat.Wall(epw_file="EPW/MX_Cuernavaca.epw")
+# 1. Crear el sistema (envuelve location + EPW)
+wall = eh.System(eh.Location("EPW/MX_Cuernavaca.epw"))
 
 # 2. Configurar la geometría
-wall.azimuth     = 90      # Norte=0, Este=90, Sur=180, Oeste=270
-wall.tilt        = 90      # 90 = muro vertical, 180 = techo horizontal
-wall.absorptance = 0.3     # absortancia solar (0-1)
+wall.azimuth    = 90      # Norte=0, Este=90, Sur=180, Oeste=270
+wall.tilt       = 90      # 90 = muro vertical, 180 = techo horizontal
+wall.absortance = 0.3     # ← "absortance" SIN p (calco del español "absortancia")
 
 # 3. Definir las capas (ext → int)
 wall.layers = [
     ("adobe", 0.30),       # tupla (nombre del material, espesor en m)
 ]
 
-# 4. Día representativo del mes
-wall.set_day(month=4, year=2026)  # abril, año arbitrario
+# 4. Día representativo del mes — método de location, no de wall
+wall.location.meanDay(month=4, year=2026)
 
-# 5. Calcular la temperatura sol-aire (forzamiento exterior)
-wall.tsa()                 # se almacena en wall internamente
+# 5. Calcular la temperatura sol-aire (Tsa con T MAYÚSCULA)
+wall.Tsa()                 # se almacena en wall internamente
 
 # 6. Resolver la transferencia de calor
-wall.solve()               # sin AC — la T flota
+result = wall.solve()      # sin AC — la T flota
 # o
-wall.solve_ac()            # con AC — T constante en setpoint adaptativo
+result = wall.solveAC()    # con AC (camelCase) — setpoint adaptativo
 ```
+
+### Diferencias críticas con la transcripción de clase
+
+| Lo transcrito en clase | API real verificada |
+|-------------------------|---------------------|
+| `enerhabitat.Wall(...)` | **`eh.System(eh.Location(epw_file))`** |
+| `wall.absorptance = α` | **`wall.absortance = α`** (sin p) |
+| `wall.set_day(month=4)` | **`wall.location.meanDay(month=4, year=Y)`** |
+| `wall.tsa()` | **`wall.Tsa()`** (T mayúscula) |
+| `wall.solve_ac()` | **`wall.solveAC()`** (camelCase) |
+| Output con `T_int` | **`Ti`** (interior) |
+| Output con `To` | **`Ta`** (ambiente) |
+
+Detalle del descubrimiento en [[../notebooks/006_Adobe_con_sin_AC]].
 
 ### `materials.ini` auto-detectado
 
@@ -104,14 +120,40 @@ EnerHabitat busca `materials.ini` en el **subdirectorio donde corre la libreta**
 
 > Detalle no documentado oficialmente — descubierto en clase 011. Conviene poner `materials.ini` en la raíz del proyecto Python para que se auto-detecte.
 
-### `solve()` vs `solve_ac()`
+### `solve()` vs `solveAC()`
 
 | Método | Resultado | Variables clave que se generan |
 |--------|-----------|---------------------------------|
-| `wall.solve()` | T interior flota libre | `wall.solution` con `T_int` (serie temporal) |
-| `wall.solve_ac()` | T interior constante en setpoint adaptativo | `wall.cooling_energy`, `wall.heating_energy` (J) |
+| `wall.solve()` | T interior flota libre | DataFrame con `Ti` (serie temporal del día) |
+| `wall.solveAC()` | T interior constante en setpoint adaptativo | DataFrame con `Ti` constante; atributos `wall.cooling_energy`, `wall.heating_energy` (J/(m²·día)) |
 
-Para climas cálidos: el setpoint adaptativo se coloca en el **límite superior de confort** ([[../concepts/Confort-Adaptativo|Humphreys-Nicol]]). Para climas fríos: el setpoint actual no es óptimo (issue documentado en GitHub).
+Para climas cálidos: el setpoint adaptativo se coloca en el **límite superior de confort**. Para climas fríos: el setpoint actual no es óptimo (issue documentado en GitHub).
+
+### Concatenar Tsa al output del solve
+
+El DataFrame que retorna `solve()` o `solveAC()` **no incluye Tsa** por default. Hay que concatenarla manualmente:
+
+```python
+result = pd.concat([result, wall.Tsa().asfreq("10min")], axis=1)
+```
+
+> Comentario del notebook 006 lo explica: "Tsa is a function of color, tilt, orientation, month and location, so it must be recomputed whenever any of those inputs change."
+
+### Columnas del DataFrame de output
+
+13 columnas para un día (144 filas a 10 min):
+
+| Columna | Significado |
+|---------|-------------|
+| `Ti` | T interior (la solución del cálculo) |
+| `Ta` | T ambiente exterior (del EPW) |
+| `Tsa` | T sol-aire (al concatenar con `pd.concat`) |
+| `Tn` | T de neutralidad (Humphreys-Nicol mensual) |
+| `DeltaTn` | Banda de confort — **modelo de Morillón** (ej. 1.25 °C en Campeche), no Humphreys 3.5 |
+| `Is` | Radiación incidente sobre la superficie |
+| `Ig`, `Ib`, `Id` | Radiación global, directa, difusa del EPW |
+| `zenith`, `elevation`, `azimuth` | Posición solar |
+| `equation_of_time` | Ecuación del tiempo |
 
 ## 4b. Configuración global de coeficientes convectivos
 
@@ -127,38 +169,43 @@ enerhabitat.config.h1 = 8.6  # h_c interior — default 8.6
 ## 5. Comparar dos sistemas constructivos
 
 ```python
+import enerhabitat as eh
+
+epw_file = "EPW/MX_Cuernavaca.epw"
+
 # Sistema 1 — tabique blanco
-wall_1 = enerhabitat.Wall(location)
-wall_1.azimuth     = 90
-wall_1.tilt        = 90
-wall_1.absorptance = 0.3  # blanco
-wall_1.layers      = [("tabique_recocido", 0.14)]
-wall_1.set_day(month=4)
-wall_1.tsa()
+wall_1 = eh.System(eh.Location(epw_file))
+wall_1.azimuth    = 90
+wall_1.tilt       = 90
+wall_1.absortance = 0.3                       # blanco
+wall_1.layers     = [("tabique_recocido", 0.14)]
+wall_1.location.meanDay(month=4, year=2026)
+wall_1.Tsa()
 res_1 = wall_1.solve()
+res_1 = pd.concat([res_1, wall_1.Tsa().asfreq("10min")], axis=1)
 
 # Sistema 2 — tabique rojo
-wall_2 = enerhabitat.Wall(location)
-wall_2.azimuth     = 90
-wall_2.tilt        = 90
-wall_2.absorptance = 0.7  # rojo
-wall_2.layers      = [("tabique_recocido", 0.14)]
-wall_2.set_day(month=4)
-wall_2.tsa()
+wall_2 = eh.System(eh.Location(epw_file))
+wall_2.azimuth    = 90
+wall_2.tilt       = 90
+wall_2.absortance = 0.7                       # rojo
+wall_2.layers     = [("tabique_recocido", 0.14)]
+wall_2.location.meanDay(month=4, year=2026)
+wall_2.Tsa()
 res_2 = wall_2.solve()
+res_2 = pd.concat([res_2, wall_2.Tsa().asfreq("10min")], axis=1)
 
-# Comparar
-import matplotlib.pyplot as plt
+# Comparar — usar Ti (no T_int) y Tsa (no T_sa)
 fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(res_1["T_int"], label="blanco (α=0.3)", color="blue")
-ax.plot(res_2["T_int"], label="rojo (α=0.7)",   color="red")
-ax.plot(res_1["T_sa"],  label="T_sa blanco",   color="blue", linestyle="--")
-ax.plot(res_2["T_sa"],  label="T_sa rojo",     color="red",  linestyle="--")
+ax.plot(res_1["Ti"],  label="blanco (α=0.3)", color="blue")
+ax.plot(res_2["Ti"],  label="rojo (α=0.7)",   color="red")
+ax.plot(res_1["Tsa"], label="Tsa blanco",     color="blue", linestyle="--")
+ax.plot(res_2["Tsa"], label="Tsa rojo",       color="red",  linestyle="--")
 ax.legend()
 ax.set_ylabel("T (°C)")
 ```
 
-Resultado esperado: la $T_{sa}$ del rojo es **mucho mayor** (más absorción solar). La T interior del rojo también es mayor, pero la diferencia se atenúa por la masa del tabique.
+Resultado esperado: la `Tsa` del rojo es **mucho mayor** (más absorción solar). La T interior del rojo también es mayor, pero la diferencia se atenúa por la masa del tabique.
 
 ## 6. Estudios paramétricos — caso de uso central
 
@@ -168,31 +215,37 @@ Patrón básico: iterar sobre absortancia comparando consumo AC.
 
 ```python
 import numpy as np
+import enerhabitat as eh
 
-absortancias = np.linspace(0.01, 1.0, 100)
+epw_file = "EPW/cuernavaca.epw"
+absortancias = np.linspace(0.01, 1.0, 10)   # 10 puntos
 consumo_cool = []
 consumo_heat = []
 
 for alpha in absortancias:
-    wall = enerhabitat.Wall(epw_file="EPW/cuernavaca.epw")
-    wall.azimuth     = 90
-    wall.tilt        = 90
-    wall.absorptance = alpha          # ← variar este parámetro
-    wall.layers      = [("concreto", 0.15)]   # espesor fijo
-    wall.set_day(month=4, year=2026)
-    wall.tsa()
-    wall.solve_ac()
+    # Crear nuevo wall en cada iteración (evita estado residual)
+    wall = eh.System(eh.Location(epw_file))
+    wall.azimuth    = 90
+    wall.tilt       = 90
+    wall.absortance = alpha                  # ← variar absortance (no espesor)
+    wall.layers     = [("concreto", 0.15)]   # espesor fijo
+    wall.location.meanDay(month=4, year=2026)
+    wall.Tsa()
+    wall.solveAC()
 
-    consumo_cool.append(wall.cooling_energy.sum())
-    consumo_heat.append(wall.heating_energy.sum())
+    # cooling_energy y heating_energy son atributos escalares (J/(m²·día))
+    consumo_cool.append(wall.cooling_energy)
+    consumo_heat.append(wall.heating_energy)
 
 fig, ax = plt.subplots()
-ax.plot(absortancias, consumo_cool, label="enfriamiento")
-ax.plot(absortancias, consumo_heat, label="calentamiento")
+ax.scatter(absortancias, consumo_cool, label="enfriamiento")
+ax.scatter(absortancias, consumo_heat, label="calentamiento")
 ax.set_xlabel("Absortancia α")
-ax.set_ylabel("Energía (J)")
+ax.set_ylabel("Energía (J/(m²·día))")
 ax.legend()
 ```
+
+> **Nota**: `wall.cooling_energy` y `wall.heating_energy` son **escalares**, no series temporales. No usar `.sum()` — ya están agregados al día representativo.
 
 Resultado esperado en clima cálido (Cuernavaca):
 
