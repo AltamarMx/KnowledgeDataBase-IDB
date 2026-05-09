@@ -3,8 +3,8 @@ title: Caso Base
 type: concepto
 tags: [concepto, metodologia, caso-base, estudio-parametrico, proyecto-final]
 aliases: [caso de referencia, caso base, baseline, modelo de referencia]
-clases: [007]
-updated: 2026-05-02
+clases: [007, 012]
+updated: 2026-05-08
 ---
 
 # Caso Base
@@ -36,6 +36,29 @@ Antes de hacer la primera variante, el caso base debe tener:
 | **Sanity check** | Una primera simulación corre limpia (cero severes, warnings entendidos). Las series temporales tienen valores plausibles. |
 
 > "Definan métricas y output variables **antes** de ramificar — si no, cada variante va a quedar con un set distinto."
+
+## Caso base del proyecto final 2026-2
+
+Especificación fija dada por el profesor en la clase 012 — todos los equipos parten del mismo caso base, sólo cambia el bioclima asignado:
+
+| Aspecto | Valor |
+|---|---|
+| Edificación | **Casa 11** del programa **Decide y Construye** (vivienda social MX, 60-65 m², dos plantas) |
+| Absortancia solar (todas las superficies) | **0.4** |
+| Sombreado | Sin elementos |
+| Aire acondicionado | Sin AC |
+| Cargas térmicas internas | Sin cargas |
+| Piso | **Adiabático** |
+| Infiltración | Sí (con la configuración que entregue el profesor) |
+| Ventanas | Vidrio simple **3 mm**, dimensiones según planos |
+| Sub-superficies interiores | No simular (bug de FloorspaceJS entre zonas) |
+| Muros exteriores | Yeso 5 cm + tabique 14 cm + acabado interior (interior→exterior según plano) |
+| Ventilación natural | No se modela |
+| Cochera | Orientada al sur (define orientación de referencia; la rotación es estrategia válida) |
+
+Las propiedades térmicas de los materiales las busca cada equipo y **reportan la fuente** (ASHRAE, Incropera, libros de transferencia de calor, [[../tools/EnerHabitat|EnerHabitat]]).
+
+Detalle del encuadre completo en [[../classes/012-ProyectoFinal]].
 
 ## Estructura típica del proyecto final
 
@@ -106,3 +129,4 @@ Las **diferencias relativas** son más robustas que los valores absolutos — la
 ## Clases relacionadas
 
 - [[../classes/007-CasoBaseAleros]] — introducción al concepto y al workflow del proyecto final
+- [[../classes/012-ProyectoFinal]] — especificación fija del caso base 2026-2 (Casa 11, α=0.4, sin AC, piso adiabático)

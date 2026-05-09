@@ -3,8 +3,8 @@ title: Grados-Hora de Disconfort
 type: concepto
 tags: [concepto, confort, metricas, bioclimatico, analisis, proyecto-final]
 aliases: [grados hora, degree-hours, GH, GH-calido, GH-frio, disconfort acumulado]
-clases: [008]
-updated: 2026-05-02
+clases: [008, 012]
+updated: 2026-05-09
 ---
 
 # Grados-Hora de Disconfort
@@ -71,42 +71,69 @@ Las **áreas sombreadas** entre la curva interior y la banda de confort son los 
 
 ## Cálculo en Python
 
-Para cada paso temporal:
+Patrón idiomático en pandas (replicado de [[../notebooks/007_DDH]]):
 
 ```python
-import numpy as np
-from iertools.read import read_sql, read_epw
+from iertools.read import read_sql
 
-sim = read_sql("../OSM/005_caso_base/run/eplusout.sql", alias=True)
-epw = read_epw("../EPW/cuernavaca.epw", alias=True, year=2006, suppress_warnings=True)
+sim  = read_sql("../osm/005_caso_base/run/eplusout.sql", alias=True).data
+Ti   = sim["Ti_ESTE"]   # o T_op si se pidió
+To   = sim["To"]
 
-df = sim.data
-T_int = df.T_este  # o T_op si la pediste
+# T de neutralidad mensual (Humphreys-Nicol)
+To_m = To.groupby(sim.index.month).mean()
+Tn_m = 13.5 + 0.54 * To_m
 
-# T de neutralidad mensual
-T_mes = epw.TO.resample("ME").mean()
-T_neut = 0.54 * T_mes + 13.5
-delta = 3.5
+# Banda — elegir según el modelo (ver advertencia abajo)
+banda = 3.5     # Humphreys-Nicol / ASHRAE 55
+# banda = 1.25  # Morillón (clima estable)
 
-# Mapear cada timestamp al T_neut de su mes
-T_neut_at_t = df.index.to_series().map(
-    lambda t: T_neut[T_neut.index.month == t.month].iloc[0]
-)
-T_sup = T_neut_at_t + delta
-T_inf = T_neut_at_t - delta
+# Broadcast: serie mensual → serie temporal completa
+Tn_serie = pd.Series(sim.index.month.map(Tn_m), index=sim.index)
+Tn_sup   = Tn_serie + banda
+Tn_inf   = Tn_serie - banda
 
 # Δt en horas (paso de 10 min)
-dt = 10 / 60
+dt_h = 1/6
 
 # Grados-hora cálidos y fríos
-GH_calido = np.maximum(T_int - T_sup, 0).sum() * dt
-GH_frio   = np.maximum(T_inf - T_int, 0).sum() * dt
-
-print(f"GH cálidos: {GH_calido:>8.0f} °C·h")
-print(f"GH fríos:   {GH_frio:>8.0f} °C·h")
+GH_calido = (Ti - Tn_sup).clip(lower=0).sum() * dt_h
+GH_frio   = (Tn_inf - Ti).clip(lower=0).sum() * dt_h
 ```
 
-Para una zona en Cuernavaca con un cubo simple sin protecciones, los GH cálidos típicamente caen en el rango **5,000-15,000 °C·h/año** — números grandes, sus unidades son "feas" como advierte el profesor.
+### Notas sobre el snippet
+
+- **`groupby(index.month).mean()`** agrega por número de mes (1..12) sin importar el año — más limpio que `resample("ME").mean()` cuando lo que se quiere es mapear de vuelta a la serie temporal.
+- **`pd.Series(index.month.map(Tn_m), index=sim.index)`** vectoriza el broadcast del valor mensual a cada timestep. Más limpio que el lambda equivalente `df.index.to_series().map(lambda t: Tn_m[t.month])`.
+- **`.clip(lower=0)`** es pandas-native; equivalente a `np.maximum(..., 0)` pero sin importar NumPy.
+
+### Cuál `banda` (ΔT) usar — atención
+
+El valor **NO es siempre 3.5 °C**. Depende del modelo adaptativo elegido:
+
+| Modelo | ΔT |
+|--------|-----|
+| Humphreys-Nicol / ASHRAE 55 estándar | 3.5 °C |
+| Morillón (climas mexicanos, variable) | 1.25 - 4 °C |
+
+Ver [[Confort-Adaptativo#modelo-de-morillón-el-δt-mexicano|Morillón en Confort-Adaptativo]]. Para el [[../notebooks/007_DDH]] se usa 1.25 (Morillón).
+
+> **Antes de comparar GH entre simulaciones**: usar siempre la **misma banda** en todas. Comparar GH calculados con bandas distintas no tiene sentido — banda estrecha siempre dará GH altos.
+
+### Magnitudes típicas
+
+Para una zona en Cuernavaca con un cubo simple sin protecciones, con banda 3.5 los GH cálidos típicamente caen en el rango **5,000-15,000 °C·h/año**. Con banda 1.25 (Morillón) los números se multiplican por ~2-3× — números grandes, sus unidades son "feas" como advierte el profesor.
+
+## Aplicación al proyecto final 2026-2
+
+La clase 012 fija cómo se aplica al proyecto:
+
+- Calcular GH **sólo en el / los mes(es) crítico(s)** identificados con CONUEE — no anualmente.
+- Acompañar GH cálido / frío con el **promedio mensual del máximo (o mínimo) diario** de la T del aire interior — sirve de sanity check al lector.
+- Reportar **caso × mes × estrategia**: una matriz si hay dos meses críticos.
+- Si el clima asignado es extremoso (cálido + frío), **priorizar** explícitamente — una estrategia que reduce GH cálido suele subir GH frío y viceversa.
+
+Detalle del encuadre completo en [[../classes/012-ProyectoFinal]].
 
 ## Reporte comparativo — la tabla del proyecto final
 
@@ -164,3 +191,8 @@ Nunca reportar **una sola métrica** — siempre acompañarla con su contexto.
 ## Clases relacionadas
 
 - [[../classes/008-ShadingVentanas]] — explicación pizarrón del concepto y comparación con otras métricas
+- [[../classes/012-ProyectoFinal]] — aplicación al proyecto: mes crítico, matriz caso × mes × estrategia, priorización en climas extremosos
+
+## Libretas relacionadas
+
+- [[../notebooks/007_DDH]] — implementación completa del cálculo con banda de Morillón sobre el modelo de dos zonas; patrones `groupby(index.month)`, `index.month.map`, `.clip(lower=0)`

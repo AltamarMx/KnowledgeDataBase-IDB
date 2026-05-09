@@ -1,9 +1,9 @@
 ---
 title: Reglas del Curso
 type: rules
-clases_referencia: [001, 002]
-updated: 2026-05-02
-tags: [reglas, operacion, curso]
+clases_referencia: [001, 002, 012]
+updated: 2026-05-08
+tags: [reglas, operacion, curso, proyecto-final]
 ---
 
 # Reglas del curso
@@ -94,6 +94,40 @@ Hay una **reconsideración de financiamiento** pendiente para construir el asist
 - Reducir dependencia tecnológica externa.
 - **Medir el consumo energético del modelo** — el profesor señala que hay mucha desinformación sobre el consumo de los LLMs (mito del agua: el agua se usa para enfriar en circuitos casi siempre cerrados).
 
+## Proyecto final 2026-2
+
+Reglas específicas del proyecto final del semestre 2026-2, fijadas en la clase 012.
+
+### Fechas
+
+| Fecha | Evento |
+|---|---|
+| 13 mayo (aprox) | Profesor entrega rúbrica |
+| 22 mayo | Última clase técnica con el profesor (infiltración + ventanas complejas) |
+| 29 mayo | Fin del semestre UNAM — última clase del taller |
+| 3 junio | Asesoría opcional (a confirmar por equipo en el chat) |
+| **5 junio 10 AM** | **Presentación + entrega del proyecto** |
+
+### Formato
+
+- **Reporte: máximo 5 páginas** (la portada no cuenta).
+- **Google Doc preferido** sobre PDF — facilita el comentario inline. LaTeX OK pero exporta como PDF, lo que ralentiza la revisión.
+- **Presentación: 15 min máx + ~10 min preguntas** por equipo. Audiencia especializada — no contextualizar conceptos básicos.
+- **Etiquetar las estrategias por nombre** ("estrategia color", "estrategia ventanas"), no "estrategia 1, 2, 3".
+- **Archivos**: zip del espacio de trabajo (`OSM/`, `EPW/`, `notebooks/`) + reporte + presentación. **Una persona por equipo entrega.**
+- **No** se exige reproducibilidad con `uv` (todavía no es clase de reproducibilidad).
+- **No le echen ganas a la portada** — el profesor sólo busca quién es el equipo.
+
+### Evaluación
+
+- **Total: 250 puntos** (rúbrica detallada pendiente).
+- La calificación es **del equipo** — todos los miembros reciben la misma puntuación (regla general del curso).
+- La persona que presenta **habla por todo el equipo** — preguntas y respuestas se evalúan colectivamente.
+
+### Encuadre técnico
+
+Detalle metodológico (Casa 11, CONUEE, caso base + 3 estrategias + integrado, mes crítico, métricas) en [[classes/012-ProyectoFinal]].
+
 ## Tecnología en clase
 
 - Celular y computadora permitidos, **úsenlos con responsabilidad**.
@@ -114,3 +148,4 @@ Hay una **reconsideración de financiamiento** pendiente para construir el asist
 
 - Establecidas en: [[classes/001-IntroduccionTallerIDB]]
 - Asistente IA del curso anunciado en: [[classes/002-ConceptosBasicosBalancesCalor]]
+- Reglas del proyecto final 2026-2: [[classes/012-ProyectoFinal]]

@@ -3,8 +3,8 @@ title: Estudio Paramétrico
 type: concepto
 tags: [concepto, metodologia, estudio-parametrico, bioclimatico, comparacion]
 aliases: [estudio parametrico, parametric study, sensitivity analysis, sensibilidad]
-clases: [007]
-updated: 2026-05-02
+clases: [007, 012]
+updated: 2026-05-08
 ---
 
 # Estudio Paramétrico
@@ -76,6 +76,18 @@ Las métricas se eligen **antes** de ramificar. Típicas:
 
 Calcularlas para cada simulación y reportarlas en una tabla **lado a lado** con las diferencias relativas.
 
+## Encuadre del proyecto final 2026-2
+
+La clase 012 fija reglas adicionales sobre cómo presentar y discutir el estudio:
+
+- **Etiquetar las estrategias por nombre** (`estrategia color`, `estrategia ventanas`, `estrategia orientación`) — no `estrategia 1, 2, 3`. La etiqueta debe comunicar al revisor sin necesidad de abrir el reporte.
+- **Las estrategias deben mejorar.** Si una variante no mejora respecto al caso base, descartarla y proponer otra (no se reporta como "estrategia fallida").
+- **No automatizar la corrida.** Estar mirando series temporales en cada caso — una métrica puede ocultar trade-offs (la amplitud baja pero el promedio sube, etc.).
+- **Acotar a meses críticos.** Para el proyecto se evalúa sólo el mes cálido y/o el mes frío (CONUEE). Una vivienda real exige análisis anual; el proyecto no.
+- **Climas extremosos**: si hay dos meses críticos, **priorizar** explícitamente y reportar la decisión — la mejora rara vez es simétrica.
+
+Detalle completo en [[../classes/012-ProyectoFinal]].
+
 ## Workflow recomendado
 
 1. **Construir el caso base** y revisarlo a fondo (ver [[Caso-Base]]).
@@ -105,3 +117,4 @@ Conclusión: cuando una caricatura está bien construida, **el orden y magnitud 
 ## Clases relacionadas
 
 - [[../classes/007-CasoBaseAleros]] — introducción al concepto y aplicación al proyecto final
+- [[../classes/012-ProyectoFinal]] — encuadre 2026-2: etiquetas por nombre, mejora obligatoria, mes crítico, no automatizar

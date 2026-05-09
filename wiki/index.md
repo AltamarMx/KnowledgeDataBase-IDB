@@ -1,7 +1,7 @@
 ---
 title: Índice de la Wiki IDB
 type: index
-updated: 2026-05-02
+updated: 2026-05-09
 ---
 
 # Wiki — Taller de Diseño Bioclimático (IDB)
@@ -27,6 +27,7 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 | 009 | [[classes/009-AireAcondicionadoSetPoints]] | Aire acondicionado ideal, schedules, setpoints (T constante / banda / hackeado), posición del aislante, crítica a NOM y Cool Biz Japón |
 | 010 | [[classes/010-EnerHabitatParte1]] | Herramienta EnerHabitat (web + paquete Python), temperatura sol-aire, estado oscilatorio permanente, factor de decremento, demo con bug |
 | 011 | [[classes/011-EnerHabitatParte2]] | Asistente virtual del curso (RAG + Telegram), fix del bug pandas 3.0, estudio paramétrico en Python, anti-patrones (referencias compartidas, NumPy vs DataFrame), tarea final |
+| 012 | [[classes/012-ProyectoFinal]] | Encuadre del proyecto final 2026-2: Casa 11 de Decide y Construye, especificación del caso base (α=0.4, sin AC, piso adiabático), CONUEE, 5 simulaciones, métricas por mes crítico, presentación 5 jun, onboarding del bot por screenshot |
 
 ## Conceptos
 
@@ -120,6 +121,7 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 | 004 | [[notebooks/004_Comparacion_ConSinVentanas]] | Comparación caso base vs con protecciones (clase 008); función reusable de carga; Sunlit Fraction; muro padre como referencia; `Mir-FACE` (mirror surfaces internas de E+) |
 | 005 | [[notebooks/005_revision_1setpoint]] | Caso `007_CB_aa` con AC en T constante (clase 009); filtro de año `index.year==2006`; análisis energético mensual y anual; OESTE consume 4× más cooling que ESTE |
 | 006 | [[notebooks/006_Adobe_con_sin_AC]] | Estudio paramétrico con EnerHabitat; **API real verificada** (`System`, `absortance`, `meanDay`, `Tsa`, `solveAC`); Adobe en Campeche; delta Morillón 1.25°C |
+| 007 | [[notebooks/007_DDH]] | Cálculo completo de GH cálidos/fríos sobre `004_dos_zonas` con banda Morillón=1.25; patrones `groupby(index.month)`, `index.month.map`, `.clip(lower=0)`; antipatrón de `plot()` con índice booleano |
 
 ## Log
 

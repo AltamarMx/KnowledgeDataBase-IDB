@@ -3,8 +3,8 @@ title: Estructura del proyecto de simulación
 type: procedimiento
 tags: [procedimiento, openstudio, organizacion, archivos, narrativa-computacional]
 aliases: [estructura proyecto, organizacion archivos, narrativa computacional]
-clases: [003, 004, 007, 008]
-updated: 2026-05-02
+clases: [003, 004, 007, 008, 012]
+updated: 2026-05-08
 ---
 
 # Estructura del proyecto de simulación
@@ -111,6 +111,16 @@ OSM/
 
 **No enviar solo el OSM.** Sin el folder hermano se pierden measures; sin el EPW no se puede correr; sin notebooks no se ve el análisis.
 
+### Entrega del proyecto final 2026-2
+
+Para el proyecto final ([[../classes/012-ProyectoFinal]]):
+
+- **Una persona por equipo** sube el zip + reporte + presentación.
+- Estructura mínima del zip: `OSM/` con todos los `.osm` (con sus folders hermanos) + `EPW/` + `notebooks/`.
+- Pueden **purgar OSMs intermedios** del proceso de desarrollo si quieren — basta con dejar caso base + variantes finales.
+- **No** se exige reproducibilidad con `uv` (todavía no es clase de reproducibilidad).
+- El reporte se prefiere **Google Doc** sobre PDF — facilita comentarios inline.
+
 ## Si se usa control de versiones (opcional, recomendado)
 
 En lugar del versionado manual numerado, se puede usar **Git** (con remoto en GitHub):
@@ -174,3 +184,4 @@ Detalle de la libreta `004` (unificación) en [[Comparar-Simulaciones-Python]] s
 - [[../classes/004-InterpretandoMensajesConstructionSets]] — caso real del OSM movido al folder hermano y consecuencias
 - [[../classes/007-CasoBaseAleros]] — estructura del proyecto final con 5 simulaciones; regla de Save As vs copia en Explorador
 - [[../classes/008-ShadingVentanas]] — estructura de libretas Jupyter para el proyecto final con libreta unificadora
+- [[../classes/012-ProyectoFinal]] — entrega 2026-2: una persona por equipo, zip del workspace, Google Doc preferido

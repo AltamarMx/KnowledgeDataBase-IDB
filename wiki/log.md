@@ -1,7 +1,7 @@
 ---
 title: Log de la Wiki IDB
 type: log
-updated: 2026-05-02
+updated: 2026-05-09
 ---
 
 # Log cronológico
@@ -279,3 +279,70 @@ Registro de todas las ingestas y mantenimientos de la wiki.
   - `procedures/Usar-EnerHabitat-Python.md` — código completo corregido con `System`, `absortance`, `location.meanDay`, `Tsa`, `solveAC`. Tabla de diferencias entre transcripción de clase y API real. Estudio paramétrico corregido. Recomendación de crear nuevo `wall` por iteración.
   - `concepts/Confort-Adaptativo.md` — modelo de Morillón añadido como entrada en la tabla de modelos adaptativos. Sección dedicada explicando que `DeltaTn` es variable según oscilación local (1.25-4 °C), no fijo en 3.5 °C.
   - `index.md` — agregar 006 a notebooks (cierra la lista de 6 notebooks del taller).
+
+## 2026-05-08
+
+### Ingesta: clase 012 — Proyecto Final
+
+- **Fuente:** `raw/videos/012_ProyectoFinal.md` → [[classes/012-ProyectoFinal]]
+- **Naturaleza:** Clase atípica — encuadre logístico + metodológico del proyecto final del semestre 2026-2. No introduce conceptos nuevos de simulación; consolida los anteriores y fija reglas de entrega.
+- **Hechos clave registrados:**
+  - **Casa 11** del programa **Decide y Construye** (vivienda social MX, 60-65 m², dos plantas) como edificación de referencia.
+  - **Caso base fijo**: absortancia 0.4 en todas las superficies, sin AC, sin sombreado, sin cargas térmicas, piso adiabático, ventanas vidrio simple 3 mm, sub-superficies interiores no se simulan.
+  - **Workflow**: caso base + 3 estrategias bioclimáticas (que **mejoren**) + 1 caso integrado = 5 simulaciones.
+  - **Meses críticos** vía CONUEE (no análisis anual).
+  - **Métricas**: promedio mensual del máx/mín diario + grados-hora cálidos/fríos.
+  - **Presentación 5 jun 2026 a las 10 AM**: 15 min + 10 min preguntas. Reporte 5 págs máx, Google Doc preferido. Total 250 puntos.
+  - **Onboarding nuevo del bot**: screenshot del mensaje del bot → tarea en Classroom. Privacidad — sin contacto directo profesor↔alumno.
+  - **Pregunta abierta**: cómo hacer un asistente IA pedagógico (no "barco") — el profesor pide propuestas al grupo.
+- **Creados:**
+  - `wiki/classes/012-ProyectoFinal.md`
+- **Actualizados:**
+  - `concepts/Caso-Base.md` — sección "Caso base del proyecto final 2026-2" con la especificación tabulada (α=0.4, piso adiabático, etc.).
+  - `concepts/Estudio-Parametrico.md` — sección "Encuadre del proyecto final 2026-2" (etiquetas por nombre, mejora obligatoria, no automatizar, mes crítico, priorización en climas extremosos).
+  - `concepts/Asistente-Virtual-RAG.md` — sección "Onboarding por screenshot" + falla por calor de la Raspberry + pregunta abierta sobre pedagogía del asistente.
+  - `concepts/Grados-Hora-Disconfort.md` — sección "Aplicación al proyecto final 2026-2" (mes crítico, matriz caso × mes × estrategia).
+  - `REGLAS_CURSO.md` — sección nueva "Proyecto final 2026-2" (fechas, formato, evaluación 250 puntos).
+  - `procedures/Estructura-Proyecto-Simulacion.md` — sub-sección "Entrega del proyecto final 2026-2" (zip del workspace, una persona por equipo, Google Doc preferido).
+  - `index.md` — fila 012 agregada a la tabla de clases.
+- **Decisiones del usuario:**
+  - Las páginas opcionales (`Definir-Mes-Critico-CONUEE`, `Presentar-Proyecto-Final`) **no se crean** — quedan como secciones dentro de la clase 012.
+  - Nombre exacto del bot **no se registra en la wiki** — la nota dice "ver Classroom".
+- **Pendientes flagged:**
+  - Procedimiento de **infiltración** — el profesor lo grabará en video de 15 min o lo verá el 22 de mayo. Se ingerirá cuando aparezca el material.
+  - **Materiales de ventanas complejas** (sistema equivalente) — pendiente para 22 mayo.
+  - **Rúbrica detallada (250 puntos)** — el profesor la entregará ~13 de mayo. Cuando llegue, actualizar `REGLAS_CURSO.md` y la página 012.
+
+## 2026-05-09
+
+### Ingesta: notebook 007 — Cálculo de Grados-Hora de Disconfort
+
+- **Fuente:** `raw/notebooks/007_DDH.ipynb` → [[notebooks/007_DDH]]
+- **Naturaleza:** Implementación completa del cálculo de GH cálidos/fríos sobre el caso `004_dos_zonas` (modelo de la clase 006). Cubre carga, derivación de Tn mensual con Humphreys-Nicol, banda Morillón=1.25, integración con dt=10/60 h, y plot por banda con tres colores.
+- **Resultado del cálculo:** GHDC = 6,884.5 °C·h ; GHDF = 5,001.4 °C·h. Clima de doble extremo (cálido + frío significativos).
+- **Hallazgos para integrar:**
+  - **`banda = 1.25` → modelo de Morillón** (no Humphreys-Nicol). Decisión deliberada documentada — afecta la magnitud de GH; banda estrecha → GH altos. Se debe mantener consistente al comparar entre simulaciones.
+  - **Patrón limpio `groupby(index.month).mean()`** — alternativa a `resample("ME").mean()` cuando se quiere agregar por número de mes para mapear de vuelta a la serie.
+  - **Patrón limpio `pd.Series(index.month.map(Tn_m), index=df.index)`** — broadcast de Series mensual a serie temporal completa; reemplaza el lambda `df.index.to_series().map(lambda t: ...)` usado antes.
+  - **`.clip(lower=0)`** — alternativa pandas-native a `np.maximum(..., 0)` para grados-hora.
+  - **Antipatrón nuevo: `plot()` con índice booleano** conecta puntos no adyacentes con líneas falsas. Soluciones: `Ti.where(mask)` (inserta NaN, rompe línea) o `scatter` (sin línea).
+  - **Antipatrón complementario**: olvidar `ax.legend()` después de poner `label="..."`.
+  - **Confirmaciones de patrones previos:**
+    - `Zone Mean Air Temperature` se aliasa a `Ti_<ZONA>`; `Zone Air Temperature` (sin "Mean") no — confirma [[notebooks/003_EDA]].
+    - Frecuencias mezcladas (Hourly + Timestep) → 99% NaN — confirma [[notebooks/003_EDA]].
+    - Cierre `2007-01-01 00:00:00` presente — confirma [[notebooks/005_revision_1setpoint]].
+- **Creados:**
+  - `wiki/notebooks/007_DDH.md`
+- **Actualizados:**
+  - `concepts/Grados-Hora-Disconfort.md` — snippet de Python reescrito con patrones idiomáticos pandas (`groupby(index.month)`, `index.month.map`, `.clip(lower=0)`); advertencia explícita sobre `banda` no ser siempre 3.5 (puede ser Morillón 1.25-4); cross-link a [[notebooks/007_DDH]].
+  - `procedures/Analizar-Resultados-Python.md` — sección nueva "Plot con índice booleano conecta puntos no adyacentes (anti-patrón)" con soluciones `.where()` y `scatter`; entradas en la tabla de trampas comunes.
+  - `index.md` — fila 007 en la tabla de notebooks.
+- **Decisiones del usuario:**
+  - Banda 1.25 confirmada como elección de Morillón.
+  - `VNORTE`/`VOESTE` confirmadas como ventana norte/oeste; `TECHO` como techo.
+  - `004_dos_zonas` confirmado como el modelo de la clase 006.
+- **Pendientes flagged:**
+  - Análogo para `Ti_OESTE` (la libreta sólo procesa ESTE).
+  - Reportar GH **por mes**, no sólo anual — alinear con encuadre del proyecto final (clase 012).
+  - Aplicar filtro de año `df[df.index.year == 2006]` antes del cálculo.
+  - Comparar contra caso con protecciones usando el patrón de [[notebooks/004_Comparacion_ConSinVentanas]].

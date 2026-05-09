@@ -49,7 +49,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "ear_",
+                "query": "q",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,

@@ -358,6 +358,38 @@ Hacer **Kernel → Restart and Run All** periódicamente — al menos antes de:
 
 Si falla al reiniciar, hay variables fantasma o orden no-lineal — corregir.
 
+### Plot con índice booleano conecta puntos no adyacentes (anti-patrón)
+
+Caso típico: pintar la T interior con un color por banda (verde dentro de confort, rojo arriba, azul abajo).
+
+```python
+confort = (Ti >= Tn_inf) & (Ti <= Tn_sup)
+calor   = (Ti > Tn_sup)
+frio    = (Ti < Tn_inf)
+
+# ❌ Anti-patrón — plot() con filtro booleano
+ax.plot(Ti[confort], color='green')   # selecciona timestamps NO contiguos
+ax.plot(Ti[calor],   color='red')     # plot() los conecta con líneas falsas
+ax.plot(Ti[frio],    color='blue')    # → líneas que cruzan zonas de otra banda
+```
+
+`Ti[mask]` devuelve sólo los timestamps que cumplen la condición — pero `plot()` traza una línea **entre puntos consecutivos del filtro**, lo que produce líneas espurias que cruzan las otras bandas.
+
+Soluciones:
+
+```python
+# ✅ Opción A: .where() inserta NaN en los huecos — la línea se rompe en cada cambio de banda
+ax.plot(Ti.where(confort), color='green', label="confort")
+ax.plot(Ti.where(calor),   color='red',   label="calor")
+ax.plot(Ti.where(frio),    color='blue',  label="frio")
+ax.legend()
+
+# ✅ Opción B: scatter — cada punto aislado, sin línea
+ax.scatter(Ti.index[confort], Ti[confort], color='green', s=1, label="confort")
+```
+
+**Antipatrón complementario**: olvidar `ax.legend()`. Los `label="..."` quedan inertes hasta llamarlo. Visto en [[../notebooks/007_DDH]].
+
 ## Trampas comunes
 
 | Síntoma | Causa |
@@ -367,6 +399,8 @@ Si falla al reiniciar, hay variables fantasma o orden no-lineal — corregir.
 | Tab no autocompleta archivos | Estás en un directorio distinto al esperado — `pwd` o `!ls` |
 | Una variable sale con NaN en muchas filas | Tu measure tiene frecuencia distinta al resto — todas a `Timestep` ([[Solicitar-Output-Variables-Measures]]) |
 | El plot se ve "compacto" sin detalle | No has aplicado `set_xlim`, está mostrando todo el año |
+| Líneas falsas que cruzan bandas en plot por color | `plot(serie[mask])` conecta puntos no adyacentes — usar `.where(mask)` o `scatter` |
+| `label="..."` no aparece en la leyenda | Falta `ax.legend()` |
 
 ## Para análisis del EPW (no de la simulación)
 

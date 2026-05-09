@@ -3,8 +3,8 @@ title: Asistente Virtual del Curso (RAG)
 type: concepto
 tags: [concepto, ia, rag, asistente, telegram, opencode, claude, ier]
 aliases: [asistente virtual, bot del curso, rag, chat ia, asistente ia]
-clases: [001, 011]
-updated: 2026-05-02
+clases: [001, 011, 012]
+updated: 2026-05-08
 ---
 
 # Asistente Virtual del Curso (RAG)
@@ -84,6 +84,31 @@ Beneficio doble:
 - **Mejora el corpus** y el asistente con feedback real.
 - **Engancha a los estudiantes** con el aprendizaje activo (encontrar el error implica entender el concepto).
 
+## Onboarding por screenshot (clase 012)
+
+El alta inicial pedía mensaje directo del alumno al profesor con su usuario de Telegram. **Cambio** anunciado en la clase 012, motivado por la regla del curso de **no contacto privado profesor↔estudiante** ([[../REGLAS_CURSO]]):
+
+1. El bot tiene nombre público fijo (ver Classroom para el nombre exacto).
+2. El alumno le manda un mensaje **al bot** desde Telegram.
+3. El bot responde con un saludo + ID/texto de emparejamiento.
+4. El alumno hace **screenshot del mensaje del bot** (puede recortar el usuario propio para preservar privacidad) y lo sube como tarea en Classroom.
+5. El profesor copia el ID a la Raspberry y autoriza al usuario.
+6. Al confirmarse el acceso, el profesor regresa la tarea con la calificación — la entrega vale como confirmación de alta.
+
+> "Algo que yo prefiero no tener es contacto directo con ustedes. Es una cuestión de ética, de cuidado."
+
+### Falla por calor de la Raspberry
+
+> "El bot ayer estuvo fallando. No sé si alguien lo notó o si les colapsó también por el calor la Raspberry."
+
+La Raspberry vive físicamente en casa del profesor — sin acceso remoto desde el aula no puede reiniciarse en el momento. **Migración pendiente** a una máquina dedicada en el IER en 2-3 semanas (mismo plan futuro que ya se mencionó en la clase 011).
+
+### Pregunta abierta — pedagogía del asistente
+
+> "¿Cómo haces un asistente que no sea barco y que propicie el aprendizaje? Si tú le dices 'cómo hago esto', te va a contestar con código en Python y tú lo vas a copiar y pegar."
+
+El profesor invita al grupo a proponer **roles/prompts de sistema** que hagan al asistente **preguntar de vuelta** antes de responder, en lugar de entregar la solución. Es un problema abierto del prototipo.
+
 ## Privacidad — caveats
 
 > "Las conversaciones en Telegram grupal **no son privadas**. Yo puedo ver lo que escriben."
@@ -118,3 +143,4 @@ El concepto del asistente se introdujo **desde la clase 002** ([[REGLAS_CURSO]] 
 
 - [[../classes/001-IntroduccionTallerIDB]] — primera mención del proyecto del asistente
 - [[../classes/011-EnerHabitatParte2]] — presentación del prototipo funcional con Telegram
+- [[../classes/012-ProyectoFinal]] — onboarding por screenshot, falla por calor, pregunta abierta sobre pedagogía del asistente
