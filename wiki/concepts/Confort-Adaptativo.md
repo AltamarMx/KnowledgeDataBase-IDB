@@ -3,8 +3,8 @@ title: Confort Adaptativo (Humphreys-Nicol)
 type: concepto
 tags: [concepto, confort, adaptativo, humphreys, nicol, bioclimatico]
 aliases: [adaptive comfort, modelo adaptativo, humphreys nicol, confort adaptativo]
-clases: [005, 008, 009, 010]
-updated: 2026-05-02
+clases: [005, 008, 009, 010, 013]
+updated: 2026-05-22
 ---
 
 # Confort Adaptativo (Humphreys-Nicol)
@@ -69,6 +69,28 @@ Lógica:
 En el [[../notebooks/006_Adobe_con_sin_AC]] se observa `DeltaTn = 1.25` para Campeche en mayo. Para zonas con mayor oscilación diaria, sería mayor.
 
 Trade-off: el modelo de Morillón es **más estricto** en climas estables, **más permisivo** en climas extremos. Filosofía coherente con la observación adaptativa real en México.
+
+### Aclaración sobre el delta de Morillón — banda vs hemiancho
+
+Morillón define el delta como **total** (`ΔT = T_sup − T_inf`). En la práctica didáctica del grupo (clase 013) se trabaja con la **hemibanda** (`ΔT/2`) hacia cada lado de la neutralidad:
+
+```python
+T_sup = T_n + banda
+T_inf = T_n - banda
+```
+
+Para Temixco la hemibanda es **1.25 °C** (delta total ≈ 2.5 °C). Esta convención se nombra explícitamente "banda" en el código para evitar confusión con el delta total. Ver [[../classes/013-CalculoGradosHoraDisconfort#banda-de-morillón]].
+
+### Hallazgo del grupo IER — Chilpancingo
+
+Un estudio del grupo en **Chilpancingo, Guerrero** encontró que `Tn` **NO varía mes a mes** — se mantiene constante (≈ 25.6 °C). La explicación: en climas con **baja variabilidad anual** la población no se readapta mensualmente; el modelo de Humphreys-Nicol con `Tn(mes)` es excesivamente flexible.
+
+Lectura:
+
+- En climas extremosos (Cuernavaca, zonas áridas): `Tn` varía sí mes a mes → Humphreys-Nicol mensual es apropiado.
+- En climas estables (Chilpancingo, costas tropicales sin estación seca marcada): `Tn` constante → Humphreys-Nicol mensual **sobre-estima** la adaptación.
+
+Paper en revisión; mencionado en la clase 013 como ejemplo de que "la métrica no dice todo" — antes de aplicar un modelo adaptativo conviene revisar la variabilidad climática del sitio.
 
 ## Variable a evaluar
 
@@ -171,6 +193,7 @@ Hay una herramienta GUI llamada **Climate Consultant** que aplica modelos adapta
 - [[../classes/008-ShadingVentanas]] — métricas de evaluación, anti-patrones, grados-hora como métrica principal
 - [[../classes/009-AireAcondicionadoSetPoints]] — setpoint óptimo desde el modelo adaptativo
 - [[../classes/010-EnerHabitatParte1]] — uso del modelo en EnerHabitat para visualizar zona de confort
+- [[../classes/013-CalculoGradosHoraDisconfort]] — implementación en vivo: Tn mensual con `groupby(index.month)`, hemibanda Morillón vs delta total, advertencia de sobre-estimación a 28 °C, hallazgo Chilpancingo (Tn constante)
 
 ## Ver también
 

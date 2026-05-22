@@ -3,8 +3,8 @@ title: Grados-Hora de Disconfort
 type: concepto
 tags: [concepto, confort, metricas, bioclimatico, analisis, proyecto-final]
 aliases: [grados hora, degree-hours, GH, GH-calido, GH-frio, disconfort acumulado]
-clases: [008, 012]
-updated: 2026-05-09
+clases: [008, 012, 013]
+updated: 2026-05-22
 ---
 
 # Grados-Hora de Disconfort
@@ -192,6 +192,7 @@ Nunca reportar **una sola métrica** — siempre acompañarla con su contexto.
 
 - [[../classes/008-ShadingVentanas]] — explicación pizarrón del concepto y comparación con otras métricas
 - [[../classes/012-ProyectoFinal]] — aplicación al proyecto: mes crítico, matriz caso × mes × estrategia, priorización en climas extremosos
+- [[../classes/013-CalculoGradosHoraDisconfort]] — implementación en vivo en pandas: Humphreys-Nicol mensual, banda de Morillón, `.clip(lower=0)`, máscaras de tres colores; hallazgo Chilpancingo (Tn constante en climas estables)
 
 ## Libretas relacionadas
 

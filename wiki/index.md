@@ -1,7 +1,7 @@
 ---
 title: Índice de la Wiki IDB
 type: index
-updated: 2026-05-09
+updated: 2026-05-22
 ---
 
 # Wiki — Taller de Diseño Bioclimático (IDB)
@@ -28,6 +28,7 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 | 010 | [[classes/010-EnerHabitatParte1]] | Herramienta EnerHabitat (web + paquete Python), temperatura sol-aire, estado oscilatorio permanente, factor de decremento, demo con bug |
 | 011 | [[classes/011-EnerHabitatParte2]] | Asistente virtual del curso (RAG + Telegram), fix del bug pandas 3.0, estudio paramétrico en Python, anti-patrones (referencias compartidas, NumPy vs DataFrame), tarea final |
 | 012 | [[classes/012-ProyectoFinal]] | Encuadre del proyecto final 2026-2: Casa 11 de Decide y Construye, especificación del caso base (α=0.4, sin AC, piso adiabático), CONUEE, 5 simulaciones, métricas por mes crítico, presentación 5 jun, onboarding del bot por screenshot |
+| 013 | [[classes/013-CalculoGradosHoraDisconfort]] | Implementación en pandas del cálculo de grados-hora cálidos/fríos: Humphreys-Nicol mensual, banda de Morillón, `.clip(lower=0)`, máscaras de tres colores; hallazgo Chilpancingo (Tn constante en climas estables); promedio pesado por volumen; crítica al uso indebido de simulaciones (Design Builder en Oaxaca) |
 
 ## Conceptos
 

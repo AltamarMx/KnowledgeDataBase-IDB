@@ -1,7 +1,7 @@
 ---
 title: Log de la Wiki IDB
 type: log
-updated: 2026-05-09
+updated: 2026-05-22
 ---
 
 # Log cronológico
@@ -346,3 +346,34 @@ Registro de todas las ingestas y mantenimientos de la wiki.
   - Reportar GH **por mes**, no sólo anual — alinear con encuadre del proyecto final (clase 012).
   - Aplicar filtro de año `df[df.index.year == 2006]` antes del cálculo.
   - Comparar contra caso con protecciones usando el patrón de [[notebooks/004_Comparacion_ConSinVentanas]].
+
+## 2026-05-22
+
+### Ingesta: clase 013 — Cálculo de Grados-Hora de Disconfort
+
+- **Fuente:** `raw/videos/013_CalculoDDH.md` → [[classes/013-CalculoGradosHoraDisconfort]]
+- **Naturaleza:** Clase técnica + código en vivo. Es la **narración didáctica** detrás de [[notebooks/007_DDH]] — el profesor implementa el cálculo de GHDC/GHDF paso a paso en una libreta nueva (`008-B-grados-horas-disconfort` en el aula). No introduce concepto nuevo; consolida y justifica decisiones técnicas del notebook.
+- **Hallazgos para integrar:**
+  - **Aclaración Morillón delta-total vs hemibanda**: Morillón define el delta como total (`T_sup − T_inf`); el grupo trabaja con hemibanda (`±ΔT/2`) hacia cada lado de Tn. En Temixco la hemibanda es **1.25 °C** (delta total ≈ 2.5 °C). Por eso en el código se nombra `banda` y no `delta`.
+  - **Hallazgo Chilpancingo** (paper en revisión del grupo IER): en climas con **baja variabilidad anual**, `Tn` NO varía mes a mes — se mantiene constante (≈ 25.6 °C). Cuestiona la pertinencia de Humphreys-Nicol mensual en climas estables.
+  - **Advertencia explícita**: Humphreys + Morillón **sobre-estima** confort. "A 28 °C el modelo dice confort, pero estamos sudando".
+  - **Justificación pedagógica de `groupby` vs `resample`**: `resample` solo agrega; `groupby(index.month)` permite funciones personalizadas y mapeo limpio de vuelta a la serie temporal.
+  - **Justificación de `.clip(lower=0)` vs `np.abs`**: `abs` cuenta los negativos (frío en cálculo de GHDC) — mal. `clip(lower=0)` los anula — bien. Análogo al método del rectángulo en integración numérica.
+  - **Promedio pesado por volumen** (pendiente para el enunciado del proyecto final): `T̄ = Σ(Tz · Vz) / Σ Vz`. Una temperatura simple promedio sesga porque pondera igual un baño chiquito y la sala. El profesor se compromete a actualizar el documento del proyecto.
+  - **Anécdota Design Builder en Oaxaca**: artículo revisado donde se usó AC ideal con calentamiento Y enfriamiento en casa de adobe; "consumo" reportado en watts (es potencia); picos máximos como métrica representativa. Refuerza el concepto de caricatura computacional.
+  - **Notebook LM modo "podcast crítico"** como método del profesor para auto-criticar sus simplificaciones — útil para reflexionar sobre la pedagogía del taller.
+- **Creados:**
+  - `wiki/classes/013-CalculoGradosHoraDisconfort.md`
+- **Actualizados:**
+  - `concepts/Grados-Hora-Disconfort.md` — agregada clase 013 a `clases:` y a "Clases relacionadas" como la implementación en vivo.
+  - `concepts/Confort-Adaptativo.md` — sección nueva "Aclaración sobre el delta de Morillón — banda vs hemiancho" + sección nueva "Hallazgo del grupo IER — Chilpancingo"; clase 013 agregada a `clases:` y a "Clases relacionadas".
+  - `notebooks/007_DDH.md` — clase 013 agregada como clase de referencia complementaria (narración didáctica del notebook); cross-link en "Conexiones".
+  - `index.md` — fila 013 agregada a la tabla de clases.
+- **Decisiones del usuario:**
+  - Texto inicial de la transcripción estaba incompleto (solo primera mitad de la sesión); el usuario lo reemplazó por la transcripción de la segunda parte (cálculo técnico de DDH), descartando la primera parte (logística + bot Telegram), que ya estaba cubierta en [[classes/012-ProyectoFinal]].
+  - Hallazgo Chilpancingo registrado a pesar de ser paper en revisión — sin nombrar revista ni autores concretos.
+- **Pendientes flagged:**
+  - **Cálculo de la banda** a partir de la amplitud de la serie histórica de To — el profesor lo dejó como pendiente para la clase final (29 mayo).
+  - **Promedio pesado por volumen** — actualizar el documento del proyecto final con la fórmula explícita.
+  - **Infiltración + ventanas complejas + cambios de aire** — clase 22 mayo (no ingerido aún).
+  - **Clase final 29 mayo** (cierre del taller) — pendiente.

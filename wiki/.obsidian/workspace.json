@@ -4,17 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "d7c46d219b6df152",
+        "id": "5dfb1242fa34923f",
         "type": "tabs",
         "children": [
           {
-            "id": "74f3ae79e1b4a329",
+            "id": "60aa94182e6a8c7d",
             "type": "leaf",
             "state": {
-              "type": "empty",
+              "type": "graph",
               "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
         ]
@@ -49,7 +49,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "q",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -177,12 +177,15 @@
       "bases:Create new base": false
     }
   },
-  "active": "74f3ae79e1b4a329",
+  "active": "60aa94182e6a8c7d",
   "lastOpenFiles": [
+    "concepts/Radiacion-Onda-Larga.md",
+    "Untitled.base",
+    "Untitled 1.base",
+    "index.md",
+    "notebooks/001_EDA.md",
     "log.md",
     "tools/iertools.md",
-    "notebooks/001_EDA.md",
-    "index.md",
     "classes/004-InterpretandoMensajesConstructionSets.md",
     "notebooks/006_Adobe_con_sin_AC.md",
     "REGLAS_CURSO.md",
@@ -204,7 +207,6 @@
     "concepts/Estado-Oscilatorio-Permanente.md",
     "concepts/Temperatura-Sol-Aire.md",
     "classes/009-AireAcondicionadoSetPoints.md",
-    "procedures/Configurar-Aire-Acondicionado-Ideal.md",
-    "procedures/Crear-Schedule-Temperatura.md"
+    "procedures/Configurar-Aire-Acondicionado-Ideal.md"
   ]
 }
