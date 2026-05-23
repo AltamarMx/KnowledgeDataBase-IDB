@@ -2,6 +2,10 @@
 title: Índice de la Wiki IDB
 type: index
 updated: 2026-05-22
+clases_count: 14
+conceptos_count: 50
+herramientas_count: 6
+libretas_count: 7
 ---
 
 # Wiki — Taller de Diseño Bioclimático (IDB)
@@ -29,6 +33,7 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 | 011 | [[classes/011-EnerHabitatParte2]] | Asistente virtual del curso (RAG + Telegram), fix del bug pandas 3.0, estudio paramétrico en Python, anti-patrones (referencias compartidas, NumPy vs DataFrame), tarea final |
 | 012 | [[classes/012-ProyectoFinal]] | Encuadre del proyecto final 2026-2: Casa 11 de Decide y Construye, especificación del caso base (α=0.4, sin AC, piso adiabático), CONUEE, 5 simulaciones, métricas por mes crítico, presentación 5 jun, onboarding del bot por screenshot |
 | 013 | [[classes/013-CalculoGradosHoraDisconfort]] | Implementación en pandas del cálculo de grados-hora cálidos/fríos: Humphreys-Nicol mensual, banda de Morillón, `.clip(lower=0)`, máscaras de tres colores; hallazgo Chilpancingo (Tn constante en climas estables); promedio pesado por volumen; crítica al uso indebido de simulaciones (Design Builder en Oaxaca) |
+| 014 | [[classes/014-InfiltracionFloorspaceWindowLBNL]] | Infiltración constante (0.5 ACH) en Open Studio vía Space Type → Loads → Library; Casa 1 → **Casa 3** del proyecto; truco del plano como imagen en FloorspaceJS; intro a [[tools/Window-LBNL]] (SHGC/U, modelo simple vs complex); anti-patrón películas absorbentes; migración del asistente Raspberry → Mac Mini con premio en puntos |
 
 ## Conceptos
 
@@ -81,6 +86,8 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 - [[concepts/Estado-Oscilatorio-Permanente]]
 - [[concepts/Factor-de-Decremento]]
 - [[concepts/Asistente-Virtual-RAG]]
+- [[concepts/Infiltracion-Cambios-Aire]]
+- [[concepts/Solar-Heat-Gain-Coefficient]]
 
 ## Herramientas
 
@@ -89,6 +96,7 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 - [[tools/Python]]
 - [[tools/iertools]]
 - [[tools/EnerHabitat]]
+- [[tools/Window-LBNL]]
 
 ## Procedimientos
 
@@ -111,6 +119,10 @@ Catálogo del contenido procesado. Cada entrada se actualiza cuando se ingiere u
 - [[procedures/Configurar-Aire-Acondicionado-Ideal]]
 - [[procedures/Usar-EnerHabitat-Web]]
 - [[procedures/Usar-EnerHabitat-Python]]
+- [[procedures/Agregar-Infiltracion-OpenStudio]]
+- [[procedures/Importar-Plano-FloorspaceJS]]
+- [[procedures/Instalar-Window-LBNL]]
+- [[procedures/Usar-Window-LBNL]]
 
 ## Libretas Jupyter procesadas
 

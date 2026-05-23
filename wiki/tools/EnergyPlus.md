@@ -139,6 +139,40 @@ Las ventanas no usan los mismos objetos de material que los muros. E+ tiene cate
 
 Detalle en [[../concepts/Ventanas]]. Procedimiento de uso en [[../procedures/Agregar-Ventanas-OpenStudio]].
 
+### Dos modelos de ventana
+
+E+ ofrece **dos modelos de cálculo** para ventanas (Engineering Reference → Window Heat Balance Calculation):
+
+| Modelo | Inputs | Cuándo usar |
+|---|---|---|
+| **Simple** (`WindowMaterial:SimpleGlazingSystem`) | U + SHGC + VT | Cuando se conocen los certificados, o se calculan con [[Window-LBNL]] |
+| **Complex** (`Construction:ComplexFenestrationState`) | Capa por capa con propiedades direccionales | Caracterización experimental detallada |
+
+El modelo Simple es el recomendado en el taller. Si la ventana es complicada y no hay certificados disponibles, usar [[Window-LBNL]] para calcular el SHGC + U y pegarlos al Simple Glazing System. Detalle en [[../concepts/Solar-Heat-Gain-Coefficient]].
+
+## Infiltración — ecuación enriquecida
+
+E+ usa **una sola ecuación** para infiltración, parametrizada con 4 coeficientes para activar diferentes comportamientos:
+
+$$
+Q_{inf}(t) = Q_{diseño} \cdot S(t) \cdot \left[ A + B\,|\Delta T| + C\,v + D\,v^2 \right]
+$$
+
+| Modo | A, B, C, D |
+|---|---|
+| Constante | `[1, 0, 0, 0]` |
+| Por flotabilidad | `[0, b, 0, 0]` |
+| Por viento | `[0, 0, c, d]` |
+| Físico realista | calibrados experimentalmente |
+
+Detalle en [[../concepts/Infiltracion-Cambios-Aire]] y procedimiento en [[../procedures/Agregar-Infiltracion-OpenStudio]].
+
+Objetos asociados:
+
+- `ZoneInfiltration:DesignFlowRate` — el más común; método ACH/m³ por área/etc.
+- `ZoneInfiltration:EffectiveLeakageArea` — para casos con medición de blower door.
+- `ZoneInfiltration:FlowCoefficient` — para correlaciones experimentales.
+
 ## Superficies de sombramiento
 
 E+ tiene un objeto `Shading:*` para aleros, parteluces, vecinos, vegetación. Estos objetos:

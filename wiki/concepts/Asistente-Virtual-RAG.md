@@ -3,8 +3,8 @@ title: Asistente Virtual del Curso (RAG)
 type: concepto
 tags: [concepto, ia, rag, asistente, telegram, opencode, claude, ier]
 aliases: [asistente virtual, bot del curso, rag, chat ia, asistente ia]
-clases: [001, 011, 012]
-updated: 2026-05-08
+clases: [001, 011, 012, 014]
+updated: 2026-05-22
 ---
 
 # Asistente Virtual del Curso (RAG)
@@ -25,15 +25,32 @@ Solución del grupo IER: **construir un corpus curado** específico de los temas
 
 ## Stack técnico
 
-| Componente | Función |
-|------------|---------|
-| **Raspberry Pi 8GB** | Hardware base, en casa del profesor (mudará al IER) |
-| **OpenCode** | Framework agéntico de Anthropic — escribe/lee archivos en su entorno aislado |
-| **Claude (Opus)** | LLM remoto que produce las respuestas (la Raspberry no aguanta correr LLM local) |
-| **Telegram bot** | Interfaz de chat con los usuarios |
-| **Corpus curado** | Transcripciones de clases + scripts + artículos, todo en un repo |
+| Componente | Función | Estado mayo 2026 |
+|------------|---------|---|
+| **Mac Mini en el IER** | Hardware base — accesible remotamente desde la casa del profesor | **Activo (mig. completada en clase 014)** |
+| ~~Raspberry Pi 8GB en casa del profesor~~ | Hardware previo | Retirado |
+| **OpenCode** | Framework agéntico de Anthropic — escribe/lee archivos en su entorno aislado | Activo |
+| **Claude (Opus)** | LLM remoto que produce las respuestas | Activo, **planeado migrar a Llama ~27B local** en la Mac Mini |
+| **Telegram bot** | Interfaz de chat con los usuarios | Activo |
+| **Corpus curado** | Transcripciones de clases + scripts + artículos, en repo | Activo — 48 conceptos, 5 herramientas, 7 libretas a 22-may-2026 |
 
-> "OpenCode está conectado a una Raspberry Pi que vive en mi casa. Es peligroso ponerlo en tu computadora porque puede borrar cosas o leer cosas y compartirlas. Por eso debe estar aislado."
+> "OpenCode está conectado a una máquina que vive en el instituto ahora. Es peligroso ponerlo en tu computadora porque puede borrar cosas o leer cosas y compartirlas. Por eso debe estar aislado."
+
+### Por qué la migración a Mac Mini
+
+Limitación de la Raspberry en casa:
+
+- Cuando el profesor no estaba en casa, **no podía aprobar nuevos usuarios** (IP dinámica, no acceso remoto).
+- Bot inestable en días calurosos (Raspberry se sobrecalentaba — registrado en clase 012).
+- Limitada para correr un LLM local.
+
+Mac Mini en el IER resuelve los tres:
+
+- **Profesor accede remotamente** desde cualquier lado.
+- Hardware más robusto.
+- Capacidad para LLM local Llama ~27B (en cuanto se configure).
+
+> "Si estoy aquí en el instituto, como ahorita, me puedo conectar a esa máquina. Pero también tenemos estrategias de que yo me puedo conectar desde mi casa." — clase 014
 
 ### Plan futuro
 
@@ -71,11 +88,13 @@ El corpus se construye desde **transcripciones automáticas de las clases** — 
 
 ## "Minar errores" — gamificación
 
-Idea introducida en clase 011: cuando los estudiantes detecten errores del asistente:
+Idea introducida en clase 011, formalizada como **periodo de pruebas con premio en puntos** en clase 014.
 
-- Reportarlos a través del propio chat.
+Cuando los estudiantes detecten errores del asistente:
+
+- Reportarlos a través del propio chat (mecanismo de captura en afinación).
 - El asistente los registra (capacidad de escritura limitada en el sistema).
-- El profesor los revisa periódicamente y **otorga puntos** como recompensa.
+- El profesor los revisa periódicamente y **otorga puntos del curso** como recompensa.
 
 > Analogía con minería de Bitcoin: "antes la gente andaba minando bitcoins. Aquí van a minar errores."
 
@@ -83,6 +102,13 @@ Beneficio doble:
 
 - **Mejora el corpus** y el asistente con feedback real.
 - **Engancha a los estudiantes** con el aprendizaje activo (encontrar el error implica entender el concepto).
+
+### Errores conocidos a 22-may-2026
+
+- **Falta la clase 013** (DDH) en el corpus — error que el profesor reconoce en clase 014.
+- Posibles inconsistencias por la migración Raspberry → Mac Mini.
+
+> "Ahorita no lo hagan porque todavía no lo tengo bien terminado, pero podrían empezar a platicar con él y cuando les diga, reportarlo." — clase 014
 
 ## Onboarding por screenshot (clase 012)
 
@@ -144,3 +170,4 @@ El concepto del asistente se introdujo **desde la clase 002** ([[REGLAS_CURSO]] 
 - [[../classes/001-IntroduccionTallerIDB]] — primera mención del proyecto del asistente
 - [[../classes/011-EnerHabitatParte2]] — presentación del prototipo funcional con Telegram
 - [[../classes/012-ProyectoFinal]] — onboarding por screenshot, falla por calor, pregunta abierta sobre pedagogía del asistente
+- [[../classes/014-InfiltracionFloorspaceWindowLBNL]] — migración Raspberry → Mac Mini completada; periodo de pruebas formal con premio en puntos; corpus a 48 conceptos / 5 herramientas / 7 libretas; falta clase 013

@@ -3,8 +3,8 @@ title: Caricatura Computacional
 type: concepto
 tags: [concepto, metodologia, modelado, simulacion]
 aliases: [caricatura, modelo simplificado, principio de modelado]
-clases: [002, 003, 006, 007, 008, 009, 010, 011]
-updated: 2026-05-02
+clases: [002, 003, 006, 007, 008, 009, 010, 011, 014]
+updated: 2026-05-22
 ---
 
 # Caricatura Computacional
@@ -39,6 +39,8 @@ Una **caricatura** preserva la física relevante para el problema y descarta el 
 | **Día representativo / oscilatorio permanente** | Cada día real es distinto (clima cambia continuamente) | EnerHabitat usa un **día promedio del mes** repetido hasta convergencia. Suficiente para análisis comparativo, no para análisis energético anual. Ver [[Estado-Oscilatorio-Permanente]] |
 | **Temperatura sol-aire** | El balance exterior tiene 3 componentes (radiación corta + convección + LWR) | EnerHabitat los encapsula en una T equivalente $T_{sa}$ y aplica un solo coeficiente convectivo equivalente. Ver [[Temperatura-Sol-Aire]] |
 | **Cuarto idealizado de 2.5 m** | Cuartos reales tienen 4 muros + ventanas + ventilación + ocupación | EnerHabitat asume cuarto ficticio de 2.5 m con pared opuesta adiabática. 200 elementos de discretización en la pared, paso de 600 s, h_c exterior=13 W/m²K (NOM-008/020), h_c interior=8.6 W/m²K |
+| **Infiltración con ACH constante + mezclado instantáneo** | El aire infiltrado entra como jet direccional y no necesariamente se mezcla con todo el cuarto en cada timestep | E+ asume mezclado perfecto: el aire entrante se distribuye uniformemente en la zona en el timestep. Útil para ACH controlado, traiciona en ventilación natural y ventilación cruzada. Ver [[Infiltracion-Cambios-Aire]] |
+| **Coeficientes A,B,C,D fijos en la ecuación de infiltración** | La infiltración real depende dinámicamente de viento, ΔT y geometría de aberturas | E+ aplica `Q · S(t) · [A + B·\|ΔT\| + C·v + D·v²]`; con `[1,0,0,0]` y schedule=1 el flujo es constante. Modelos físicos realistas necesitan coeficientes calibrados experimentalmente |
 
 ## Caricaturas que hace el curso (sobre las del programa)
 
@@ -83,3 +85,4 @@ Conclusión: **una caricatura bien construida preserva el orden y magnitud del e
 - [[../classes/009-AireAcondicionadoSetPoints]] — Ideal Air Loads como caricatura de HVAC
 - [[../classes/010-EnerHabitatParte1]] — caricaturas de EnerHabitat (un solo muro, día representativo, T sol-aire)
 - [[../classes/011-EnerHabitatParte2]] — detalles del cuarto idealizado de 2.5 m con discretización y coeficientes
+- [[../classes/014-InfiltracionFloorspaceWindowLBNL]] — ACH constante y mezclado instantáneo como caricatura; ventanas sin masa térmica (cuasi-equilibrio dentro del timestep)

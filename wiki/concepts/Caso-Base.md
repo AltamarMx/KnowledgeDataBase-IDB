@@ -3,8 +3,8 @@ title: Caso Base
 type: concepto
 tags: [concepto, metodologia, caso-base, estudio-parametrico, proyecto-final]
 aliases: [caso de referencia, caso base, baseline, modelo de referencia]
-clases: [007, 012]
-updated: 2026-05-08
+clases: [007, 012, 014]
+updated: 2026-05-22
 ---
 
 # Caso Base
@@ -43,18 +43,27 @@ Especificación fija dada por el profesor en la clase 012 — todos los equipos 
 
 | Aspecto | Valor |
 |---|---|
-| Edificación | **Casa 11** del programa **Decide y Construye** (vivienda social MX, 60-65 m², dos plantas) |
+| Edificación | **Casa 3** del programa **Decide y Construye** (vivienda social MX, 60-65 m², dos plantas, **vivienda progresiva** en 3 etapas — se simula la etapa terminada) |
 | Absortancia solar (todas las superficies) | **0.4** |
 | Sombreado | Sin elementos |
 | Aire acondicionado | Sin AC |
 | Cargas térmicas internas | Sin cargas |
 | Piso | **Adiabático** |
-| Infiltración | Sí (con la configuración que entregue el profesor) |
-| Ventanas | Vidrio simple **3 mm**, dimensiones según planos |
+| Infiltración | **0.5 ACH constante** (decisión clase 014, consulta con Miriam). Procedimiento en [[../procedures/Agregar-Infiltracion-OpenStudio]] |
+| Ventanas | Vidrio simple **3 mm**, dimensiones según planos. SHGC ≈ 0.84, U ≈ 5.8 W/m²K |
 | Sub-superficies interiores | No simular (bug de FloorspaceJS entre zonas) |
 | Muros exteriores | Yeso 5 cm + tabique 14 cm + acabado interior (interior→exterior según plano) |
-| Ventilación natural | No se modela |
+| Ventilación natural | No se modela (pendiente decisión sobre ventilación nocturna como estrategia) |
 | Cochera | Orientada al sur (define orientación de referencia; la rotación es estrategia válida) |
+
+### Historial de cambios al caso base
+
+| Fecha | Cambio | Origen |
+|---|---|---|
+| 2026-05-08 (clase 012) | Caso base original definido — **Casa 1** de Decide y Construye, sin infiltración. | Encuadre del proyecto |
+| 2026-05-22 (clase 014) | **Edificación: Casa 1 → Casa 3** (el PDF de Casa 1 ya no está disponible en línea); se agrega **0.5 ACH constante** tras consulta con Miriam. | Disponibilidad + Miriam |
+
+> "Cambié la casa porque la casa que dije que iba a estar disponible resulta que ya no está. Lo cambiamos a la Casa 3, hice unos pequeños cambios y subí el proyecto." — clase 014
 
 Las propiedades térmicas de los materiales las busca cada equipo y **reportan la fuente** (ASHRAE, Incropera, libros de transferencia de calor, [[../tools/EnerHabitat|EnerHabitat]]).
 
@@ -129,4 +138,5 @@ Las **diferencias relativas** son más robustas que los valores absolutos — la
 ## Clases relacionadas
 
 - [[../classes/007-CasoBaseAleros]] — introducción al concepto y al workflow del proyecto final
-- [[../classes/012-ProyectoFinal]] — especificación fija del caso base 2026-2 (Casa 11, α=0.4, sin AC, piso adiabático)
+- [[../classes/012-ProyectoFinal]] — especificación inicial del caso base 2026-2 (Casa 1, α=0.4, sin AC, piso adiabático)
+- [[../classes/014-InfiltracionFloorspaceWindowLBNL]] — actualización: Casa 1 → **Casa 3**, agrega **0.5 ACH constante** tras consulta con Miriam

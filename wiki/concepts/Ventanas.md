@@ -1,10 +1,10 @@
 ---
 title: Ventanas
 type: concepto
-tags: [concepto, ventanas, sub-superficie, vidrio, glazing, energyplus, marcos]
+tags: [concepto, ventanas, sub-superficie, vidrio, glazing, energyplus, marcos, shgc, u-value]
 aliases: [ventanas, windows, glazing, vidrios, fenestracion]
-clases: [006]
-updated: 2026-05-02
+clases: [006, 014]
+updated: 2026-05-22
 ---
 
 # Ventanas
@@ -76,7 +76,7 @@ Más fiel a la realidad pero requiere **muchos parámetros** que no siempre se c
 
 ### 2. Simple Glazing System (simplificación)
 
-Una sola "capa" caracterizada por **3 parámetros**:
+Una sola "capa" caracterizada por **3 parámetros** — ver [[Solar-Heat-Gain-Coefficient]] para definiciones formales:
 
 | Parámetro | Significado |
 |-----------|-------------|
@@ -86,7 +86,11 @@ Una sola "capa" caracterizada por **3 parámetros**:
 
 Sintetiza un sistema multi-capa (vidrio + aire/argón + vidrio + low-E) en tres números. **Lo que recomienda usar el profesor en el taller** salvo que se esté caracterizando un material nuevo.
 
-> Hay bases de datos internacionales con `U-factor`, `SHGC` y `Visible Transmittance` para sistemas comerciales.
+Hay bases de datos internacionales con `U-factor`, `SHGC` y `Visible Transmittance` para sistemas comerciales. En México pocos fabricantes los certifican — solución: calcular con [[../tools/Window-LBNL]] y pegar a Open Studio.
+
+### Sin masa térmica
+
+Las ventanas en E+ se asumen **sin masa térmica** porque los vidrios son delgados (3-9 mm) y conducen rápido — el tiempo de respuesta está muy por debajo del timestep de 10 min. Por eso E+ resuelve la ventana en cuasi-equilibrio dentro de cada timestep, no como problema transitorio. Detalle en [[Solar-Heat-Gain-Coefficient#por-qué-las-ventanas-no-tienen-masa-térmica]].
 
 ## Vidrio mexicano típico
 
@@ -118,6 +122,31 @@ E+ permite definir el **marco** de la ventana aparte (objeto `WindowProperty:Fra
 ### En el alcance del taller
 
 El curso **ignora el marco** — la "ventana" del modelo incluye todo el marco como si fuera vidrio. Es una caricatura ([[Caricatura-Computacional]]) que sobreestima un poco la transmitancia solar y subestima el puente térmico. Diseño detallado de marco se ve en cursos posteriores.
+
+## Anti-patrón comercial — películas "absorbentes"
+
+> "La gente erróneamente compra esas películas porque alarman 'absorbe el 80% del calor'. No es lo deseable. Lo va a absorber, se va a calentar y lo va a emitir." — clase 014
+
+El razonamiento físico correcto:
+
+1. La película **absorbe** la radiación solar (onda corta).
+2. La película **se calienta**.
+3. Como toda superficie caliente, **emite IR** hacia adentro y hacia afuera.
+4. El cuarto recibe la IR re-emitida → temperatura radiante sube.
+
+Lo que se quiere son ventanas **reflejantes** o con **baja emisividad** (low-E), no absorbentes. Detalle en [[Solar-Heat-Gain-Coefficient#anti-patrón-comercial-—-películas-que-absorben-80-del-calor]].
+
+### Veredicto ventanas dobles según contexto
+
+| Contexto | Veredicto |
+|---|---|
+| Clima cálido sin AC | **No rentan** — la mejora es marginal vs el costo |
+| Clima cálido con AC | **Sí valen** — mantienen el frío del AC |
+| Clima templado/frío | **A veces** — depende del balance ganancia-pérdida |
+
+> "Ventanas dobles en edificaciones sin AC es tirar el dinero. Aumentan la resistencia térmica, pero aquí lo que queremos es ventilar."
+
+Detalle del análisis en [[Solar-Heat-Gain-Coefficient#veredicto-ventanas-dobles-según-contexto]].
 
 ## Caso histórico — cubículos de la plataforma solar IER
 
@@ -154,3 +183,4 @@ Variables clave de output asociadas (ver [[Variables-Output-EnergyPlus]]):
 ## Clases relacionadas
 
 - [[../classes/006-DosZonasTermicasVentanasAleros]] — introducción al objeto ventana, parámetros, materiales y casos prácticos
+- [[../classes/014-InfiltracionFloorspaceWindowLBNL]] — SHGC vs U, modelos simple/complex de E+, anti-patrón películas absorbentes, veredicto sobre ventanas dobles, introducción a [[../tools/Window-LBNL]]

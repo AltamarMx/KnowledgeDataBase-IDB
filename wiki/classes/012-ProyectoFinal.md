@@ -24,7 +24,7 @@ aliases: [Clase 012]
 Tres bloques:
 
 1. **Logística del cierre del semestre** — calendario UNAM termina el 29 de mayo; última clase con el profesor el 29 (cafecito); presentación del proyecto el **viernes 5 de junio 2026 a las 10 AM**; asesoría opcional a confirmar.
-2. **Encuadre del proyecto final** — **Casa 11** del programa **Decide y Construye** (vivienda social mexicana, 60-65 m²). Cada equipo aplica un bioclima distinto, define meses críticos vía CONUEE, monta caso base + 3 estrategias + caso integrado.
+2. **Encuadre del proyecto final** — **Casa 1** del programa **Decide y Construye** (vivienda social mexicana, 60-65 m²). Cada equipo aplica un bioclima distinto, define meses críticos vía CONUEE, monta caso base + 3 estrategias + caso integrado.
 3. **Onboarding nuevo del asistente IA** — protocolo via screenshot para preservar privacidad (no contacto directo profesor↔estudiante).
 
 > "Tienen que decir, 'Tengo un clima cálido por esto'… ya estamos asumiendo que es un público especializado."
@@ -45,15 +45,17 @@ Tres bloques:
 
 La asesoría se confirma por el chat público del curso. Puede ser **presencial o por Meet**, en el horario de clase.
 
-## Casa 11 — Decide y Construye
+## Casa 1 → Casa 3 — Decide y Construye
 
 **Decide y Construye** es un programa del gobierno mexicano que publica planos con detalles constructivos de vivienda social, algunas **progresivas** (se construyen por etapas).
 
-- **Casa 11**: vivienda social, 60-65 m², dos plantas + techo.
+> ⚠️ **Actualización clase 014 (22-may-2026):** la Casa 1 mencionada originalmente **ya no está disponible** en la página oficial del programa. El profesor cambió la edificación de referencia a la **Casa 3**. El PDF actualizado está en Classroom. Las especificaciones del caso base se mantienen idénticas — solo cambia la edificación. Ver [[014-InfiltracionFloorspaceWindowLBNL]].
+
+- **Casa 3** (vigente): vivienda social progresiva, 60-65 m², dos plantas + techo.
 - En México hay viviendas autorizadas de hasta **54 m²** ("pies de casa") — el profesor lo flagea como preocupante por la calidad espacial mínima.
 - Cochera al sur en el plano (define la orientación de referencia).
 
-> "La casa 11 pues tiene esta planta… ustedes podrían simplemente importar esto y luego dibujar."
+> "La casa 1 pues tiene esta planta… ustedes podrían simplemente importar esto y luego dibujar." _(cita original — la edificación vigente es la **Casa 3**, ver actualización arriba)_
 
 Algunas ligas del programa están rotas — se recomienda usar los planos disponibles tal cual sin recolectar más detalle del estrictamente necesario para el modelo simplificado.
 
@@ -195,7 +197,7 @@ El profesor solicita recomendaciones del grupo sobre roles/prompts de sistema pa
 ## Conexiones
 
 - ← **Anterior:** [[011-EnerHabitatParte2]]
-- → **Siguiente:** _(clase de infiltración + ventanas complejas el 22 de mayo; cierre del taller el 29 de mayo)_
+- → **Siguiente:** [[013-CalculoGradosHoraDisconfort]] (cálculo en pandas) → [[014-InfiltracionFloorspaceWindowLBNL]] (infiltración + Casa 1→Casa 3 + Window LBNL)
 - → Conceptos clave consolidados:
   - [[../concepts/Caso-Base]] — reglas específicas del proyecto final
   - [[../concepts/Estudio-Parametrico]] — 3 estrategias + integrado
@@ -210,7 +212,7 @@ El profesor solicita recomendaciones del grupo sobre roles/prompts de sistema pa
 
 ## Recursos mencionados
 
-- **Decide y Construye** — programa MX de planos de vivienda social. Casa 11.
+- **Decide y Construye** — programa MX de planos de vivienda social. Casa 1 originalmente; cambiada a **Casa 3** en clase 014 (la 1 dejó de estar disponible online).
 - **CONUEE** — Comisión Nacional para el Uso Eficiente de la Energía; metodología para meses críticos.
 - **Climat Consultant** — software para localizar temporadas críticas (alternativa).
 - **OneBuilding** — fuente de EPWs.

@@ -3,8 +3,8 @@ title: Schedules (Horarios)
 type: concepto
 tags: [concepto, schedules, horarios, cargas, setpoints, energyplus, openstudio]
 aliases: [schedule, horario, schedules energyplus, schedule:compact]
-clases: [009]
-updated: 2026-05-02
+clases: [009, 014]
+updated: 2026-05-22
 ---
 
 # Schedules (Horarios)
@@ -127,6 +127,29 @@ ax.legend()
 
 Permite verificar que el schedule llegó al IDF como esperabas (caso real: una zona horaria mal configurada puede desplazar todo el schedule).
 
+## Schedule fraccional para infiltración
+
+Caso específico — el schedule para infiltración ([[Infiltracion-Cambios-Aire]]) **debe ser tipo Fractional (0-1)**. Si se asigna un valor `> 1`, E+ falla con error de validación.
+
+El valor efectivo de la infiltración es:
+
+$$
+ACH_{efectivo}(t) = ACH_{diseño} \cdot S(t)
+$$
+
+Patrón típico de **ventilación nocturna**:
+
+| Hora | Valor del schedule |
+|---|---|
+| 00:00 – 06:00 | 1 (ventilando) |
+| 06:00 – 22:00 | 0 |
+| 22:00 – 24:00 | 1 |
+
+Con `ACH_diseño = 1`, este schedule produce 1 ACH solo de noche. Detalle en [[../procedures/Agregar-Infiltracion-OpenStudio]].
+
+> "Que no les pase lo que me pasó: le quise poner un 2 y la fracción va entre 0 y 1." — clase 014
+
 ## Clases relacionadas
 
 - [[../classes/009-AireAcondicionadoSetPoints]] — introducción al concepto y demo en vivo de la interfaz visual
+- [[../classes/014-InfiltracionFloorspaceWindowLBNL]] — schedule fraccional 0-1 para infiltración; bug confesional del profesor (fraction=2); ventilación nocturna como estrategia

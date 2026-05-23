@@ -129,8 +129,8 @@ Cuando dos espacios se unen físicamente, FloorspaceJS **corta automáticamente*
 | **Site** | Cargar el EPW (`Set Weather File`); ver lat/lon/timezone |
 | **Schedules** | Horarios (no se usan en el curso) |
 | **Construction** | Definir Materials, Constructions, **Construction Sets** ([[../concepts/Construction-Set]]) |
-| **Loads** | Cargas internas (no se usan en el curso) |
-| **Space Types** | Tipos de espacio reusables (no se usan en el curso) |
+| **Loads** | Cargas internas (no se usan en el curso, salvo **infiltración** desde clase 014) |
+| **Space Types** | Tipos de espacio reusables — **se usan en el curso desde clase 014** para asignar infiltración. Ver [[#space-types]] abajo. |
 | **Facility** | Asignar Construction Set y Schedule Set por default a la edificación; rotar la edificación respecto al norte (`North Axis`) |
 | **Geometry → Editor** | FloorspaceJS para dibujar plantas |
 | **Geometry → 3D View** | Preview 3D con Render By |
@@ -210,6 +210,35 @@ El mismo problema lo tiene Design Builder y otras GUIs — por eso conviene apre
 - Curva de aprendizaje más dura que GUIs de paga, pero **no oculta los fundamentos** — fuerza a entender condiciones de frontera y supuestos.
 - La gente egresada del instituto trabaja en consultoría con Energy Plus, Design Builder o IES indistintamente — aprender los fundamentos en software libre transfiere bien al resto.
 
+## Space Types
+
+> Hasta clase 013 no se usaban; en clase 014 entran al curso como **contenedores de cargas** (específicamente: infiltración).
+
+Un Space Type es una **plantilla reusable** que agrupa cargas (ocupación, iluminación, equipos, infiltración) con sus schedules. Se asigna a varios Spaces de un golpe → los Spaces heredan las cargas del Space Type.
+
+### Workflow
+
+1. `Space Types → New` → nombrar (e.g. `cuarto_ventilado`).
+2. Dentro del Space Type → pestaña `Loads` → panel `Library`.
+3. **Arrastrar** una carga existente (no permite crear vacía) — por ejemplo `Space Infiltration Design Flow Rate`.
+4. Editar la carga (método, valores, coeficientes).
+5. Asignar **Schedule** a la carga.
+6. En `Spaces` → arrastrar el Space Type a la columna `Space Type` de los Spaces deseados.
+
+### Anti-patrón confesional
+
+> "Open Studio no me deja crear uno nuevo desde cero. Tengo que agarrar algo que ya existe y modificarlo." — clase 014
+
+Si intentas crear una carga vacía, no se puede — la GUI obliga a arrastrar desde la Library. No es bug, es diseño.
+
+Detalle en [[../procedures/Agregar-Infiltracion-OpenStudio]].
+
+## Classic CLI — log de E+ minimalista
+
+> "Si le activo `Classic` (Classic Command Line Interface), me da una versión minimalista — sin los plugins de Ruby y todas esas cosas." — clase 014
+
+`Show Simulation → Classic CLI` produce un log de E+ más legible (sin el envoltorio Ruby de Open Studio). Útil para debugging fino — los mensajes de E+ aparecen directos.
+
 ## Clases relacionadas
 
 - [[../classes/001-IntroduccionTallerIDB]] — introducción y tarea de instalación
@@ -217,6 +246,7 @@ El mismo problema lo tiene Design Builder y otras GUIs — por eso conviene apre
 - [[../classes/004-InterpretandoMensajesConstructionSets]] — flujo OSM→IDF, Construction Sets, Show Simulation, lectura del `.err`
 - [[../classes/005-AnalisisSimulacionesPython]] — pedir variables con measures del BCL, leer el RDD, postprocesamiento con Python
 - [[../classes/006-DosZonasTermicasVentanasAleros]] — components de ventanas y aleros, limitación del alero, edición manual del OSM
+- [[../classes/014-InfiltracionFloorspaceWindowLBNL]] — Space Types como contenedores de cargas (infiltración); Classic CLI; plano como imagen en FloorspaceJS
 
 ## Procedimientos
 

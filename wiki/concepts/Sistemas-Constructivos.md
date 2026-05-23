@@ -78,7 +78,7 @@ Las ventanas no usan los mismos materiales que los muros. Para ventanas, E+ tien
 | Tipo | Caracterización | Cuándo usar |
 |------|-----------------|-------------|
 | **Glazing Window Material** | Capa por capa con propiedades ópticas (transmitancia/reflectancia/emisividad espectral) y conductividad | Ventana caracterizada experimentalmente; investigación de materiales nuevos |
-| **Simple Glazing System** | 3 parámetros: U-factor, SHGC, Visible Transmittance | **Recomendado para el taller** — basta con datos de ficha técnica |
+| **Simple Glazing System** | 3 parámetros: U-factor, SHGC, Visible Transmittance | **Recomendado para el taller** — basta con datos de ficha técnica o calculados con [[../tools/Window-LBNL]] |
 
 Detalle en [[Ventanas]].
 
@@ -106,3 +106,4 @@ Espesores < 1 mm. Efecto térmico por conducción **despreciable**. Lo que impor
 - [[../classes/004-InterpretandoMensajesConstructionSets]] — Construction Sets como atajo de asignación masiva
 - [[../classes/006-DosZonasTermicasVentanasAleros]] — materiales de ventana, relación ρ-k, pinturas e impermeabilizantes
 - [[../classes/009-AireAcondicionadoSetPoints]] — posición del aislante en sistemas dependientes del tiempo; crítica a NOM-008
+- [[../classes/014-InfiltracionFloorspaceWindowLBNL]] — los dos modelos de ventana en E+ (simple vs complex); cuándo usar [[../tools/Window-LBNL]] para calcular SHGC/U

@@ -83,6 +83,16 @@ Para casos avanzados (vidrio caracterizado en laboratorio). Requiere todos los p
 
 > En el taller usar **Simple Glazing**. Si se está haciendo investigación de un material nuevo, Opción B.
 
+### Opción C — Calcular SHGC/U con Window LBNL (ventana compleja)
+
+Cuando se quiere modelar una ventana **multi-capa real** (vidrio + gas + low-E + marco) pero no hay certificado del fabricante:
+
+1. Definir el sistema en [[../tools/Window-LBNL|Window LBNL]] (capa por capa).
+2. Exportar los 3 números: `U-factor`, `SHGC`, `Visible Transmittance`.
+3. Pegarlos al `Simple Glazing System` en Open Studio (Opción A).
+
+Detalle en [[Usar-Window-LBNL]]. **Recomendación crítica**: en clima cálido sin AC, las ventanas dobles **no suelen rentar** — ver [[../concepts/Solar-Heat-Gain-Coefficient#veredicto-ventanas-dobles-según-contexto]].
+
 ### Material precargado
 
 Open Studio trae un material `glazing 3mm` listo para usar — sirve como punto de partida para vidrio sencillo del curso.

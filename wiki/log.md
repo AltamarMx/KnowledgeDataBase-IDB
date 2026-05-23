@@ -2,6 +2,8 @@
 title: Log de la Wiki IDB
 type: log
 updated: 2026-05-22
+
+> **Nota:** las dos ingestas del 22-may-2026 corresponden a clases 013 (DDH) y 014 (Infiltración + Window) — la fecha real de la 013 pudo haber sido la 8 de mayo (segunda parte de la sesión de 012), pero el archivo se procesó hoy.
 ---
 
 # Log cronológico
@@ -377,3 +379,53 @@ Registro de todas las ingestas y mantenimientos de la wiki.
   - **Promedio pesado por volumen** — actualizar el documento del proyecto final con la fórmula explícita.
   - **Infiltración + ventanas complejas + cambios de aire** — clase 22 mayo (no ingerido aún).
   - **Clase final 29 mayo** (cierre del taller) — pendiente.
+
+### Ingesta: clase 014 — Infiltración, Floorspace con plano e introducción a Window LBNL
+
+- **Fuente:** `raw/videos/014_ACH_FloorSpace_WindowLBNL.md` → [[classes/014-InfiltracionFloorspaceWindowLBNL]]
+- **Naturaleza:** Clase técnica densa, tres bloques distintos (infiltración, Floorspace con plano, Window LBNL) + actualización del asistente del curso + cambio del enunciado del proyecto. El profesor se desdice: tras consulta con Miriam **sí se incluye infiltración** en el proyecto final.
+- **Hallazgos para integrar:**
+  - **0.5 ACH constante** se incorpora al caso base del proyecto final 2026-2 (decisión tras consulta con Miriam — clase 014, retroactivo sobre la spec de la clase 012).
+  - **Casa 1 → Casa 3**: el PDF de Casa 1 ya no está disponible en Decide y Construye → se cambió a Casa 3. Sigue siendo vivienda progresiva (3 etapas). PDF actualizado en Classroom.
+  - **Ecuación enriquecida de infiltración** en E+: `Q · S(t) · [A + B|ΔT| + C·v + D·v²]`. Para constante, `[A,B,C,D] = [1, 0, 0, 0]`. Una sola ecuación, parametrizada para activar diferentes comportamientos — el profesor lo señala como buen patrón de diseño de software.
+  - **Space Types como contenedores de cargas**: hasta la clase 013 no se usaban; entran al curso en la clase 014 para servir de plantilla de infiltración asignable a múltiples Spaces. Open Studio no permite crear cargas vacías — hay que arrastrar desde Library y editar.
+  - **Bug confesional del profesor**: puso schedule fraccional con valor 2; E+ falla con error descriptivo. Lección de ir paso a paso.
+  - **Truco plano como imagen en FloorspaceJS**: importar screenshot del plano, calibrar grid con lado conocido (7 m para la Casa 3), dibujar zonas térmicas encima. Bug conocido: la imagen se pierde al cambiar de planta.
+  - **Convención sufijo `_E`/`_S`** para distinguir Space de ThermalZone (refinamiento de la convención previa con prefijo `S:`).
+  - **Window LBNL** introducido como herramienta: programa de LBNL (no NREL, el profesor se corrige) para calcular SHGC + U-value de sistemas multi-capa. Solo Windows (Parallels en Mac). Cadena de instalación: VC++ Redist x86 + Intel Fortran Compiler Runtime + Window 7.8.
+  - **Dos modelos de ventana en E+**: Simple (SHGC + U + VT) vs Complex (capa por capa con propiedades direccionales). Recomendación: usar Window LBNL para calcular el SHGC + U y pegarlos al Simple.
+  - **Anti-patrón comercial — películas "absorben 80% del calor"**: marketing engañoso. La película absorbe → se calienta → emite IR hacia adentro → calienta el cuarto vía radiante. AC y termómetros de bulbo seco no captan el efecto. Lo correcto: ventanas reflejantes o low-E (entre dos vidrios).
+  - **Veredicto ventanas dobles sin AC**: marginalmente útiles. Mejor ventilación + sombreamiento + color.
+  - **Migración del asistente Raspberry → Mac Mini IER**: ahora accesible remotamente desde cualquier lado. **Periodo de pruebas formal con premio en puntos** por reportar errores. Corpus tiene 48 conceptos, 5 herramientas, 7 libretas (falta clase 013 — el profesor lo reconoce).
+  - **Plan futuro**: LLM local Llama ~27B en la Mac Mini → autonomía del API de Claude.
+  - **Tip operativo**: `Classic CLI` en Open Studio produce log de E+ más legible (sin envoltorio Ruby).
+- **Creados (8 páginas):**
+  - `wiki/classes/014-InfiltracionFloorspaceWindowLBNL.md`
+  - `wiki/concepts/Infiltracion-Cambios-Aire.md`
+  - `wiki/concepts/Solar-Heat-Gain-Coefficient.md`
+  - `wiki/tools/Window-LBNL.md`
+  - `wiki/procedures/Agregar-Infiltracion-OpenStudio.md`
+  - `wiki/procedures/Importar-Plano-FloorspaceJS.md`
+  - `wiki/procedures/Instalar-Window-LBNL.md`
+  - `wiki/procedures/Usar-Window-LBNL.md` _(placeholder — workflow detallado pendiente de la clase 015)_
+- **Actualizados:**
+  - `classes/012-ProyectoFinal.md` — **Casa 11 → Casa 1** (corrección de transcripción) + nota de cambio a **Casa 3** vigente; link a 013 y 014.
+  - `concepts/Caso-Base.md` — Casa 3 como edificación vigente; 0.5 ACH constante; tabla de historial de cambios.
+  - `concepts/Ventanas.md` — sección "Sin masa térmica"; sección "Anti-patrón comercial — películas absorbentes"; veredicto ventanas dobles según contexto.
+  - `concepts/Caricatura-Computacional.md` — caricatura nueva: infiltración con ACH constante + mezclado instantáneo + coeficientes A,B,C,D fijos.
+  - `concepts/Asistente-Virtual-RAG.md` — Stack técnico actualizado a Mac Mini; sección "Por qué la migración"; periodo de pruebas formal con premio en puntos; errores conocidos (falta clase 013).
+  - `concepts/Schedules.md` — sección "Schedule fraccional para infiltración"; patrón de ventilación nocturna.
+  - `concepts/Espacio-vs-ZonaTermica.md` — convención sufijo `_E`/`_S` agregada a la tabla.
+  - `concepts/Sistemas-Constructivos.md` — referencia a Window LBNL en Simple Glazing System.
+  - `tools/Open-Studio.md` — Space Types pasan de "no se usan" a usarse desde clase 014; sección nueva "Space Types"; sección nueva "Classic CLI".
+  - `tools/EnergyPlus.md` — sección nueva "Dos modelos de ventana"; sección nueva "Infiltración — ecuación enriquecida" con objetos asociados.
+  - `procedures/Agregar-Ventanas-OpenStudio.md` — Opción C nueva: calcular SHGC/U con Window LBNL.
+  - `index.md` — fila 014 + 2 conceptos + 1 herramienta + 4 procedimientos; contadores en frontmatter.
+- **Decisiones del usuario:**
+  - Cambio Casa 1 → Casa 3 (transcripción 012 tenía "Casa 11" por error ASR — era "Casa 1").
+  - Crear las **8 páginas nuevas** propuestas en lugar de consolidar dentro de la clase.
+- **Pendientes flagged:**
+  - **Clase 015 (29 mayo, última)**: uso real de Window LBNL (esta clase solo instaló); banda de Morillón desde amplitud histórica; promedio pesado por volumen; cafecito de cierre.
+  - **Ventilación nocturna como estrategia bioclimática** — el profesor lo consultará con Miriam.
+  - **Falta clase 013 en el corpus del bot** — el profesor lo reconoce; debería agregarse en la próxima actualización del RAG.
+  - **`Usar-Window-LBNL.md`** quedó como placeholder con `status: pendiente-clase-015` — completar cuando se ingiera la clase 015.

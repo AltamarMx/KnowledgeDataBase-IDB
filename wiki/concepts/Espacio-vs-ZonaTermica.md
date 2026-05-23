@@ -3,8 +3,8 @@ title: Espacio vs Zona Térmica
 type: concepto
 tags: [concepto, openstudio, modelado, nomenclatura]
 aliases: [space vs thermal zone, espacio openstudio, thermal zone]
-clases: [003, 006]
-updated: 2026-05-02
+clases: [003, 006, 014]
+updated: 2026-05-22
 ---
 
 # Espacio vs Zona Térmica
@@ -30,12 +30,17 @@ A pesar del mapeo 1:1, **espacio y zona térmica son objetos distintos en Open S
 
 ## Convención de nombres del profesor
 
-Espacios y zonas térmicas no pueden compartir el mismo nombre. La convención sugerida:
+Espacios y zonas térmicas no pueden compartir el mismo nombre. La convención sugerida (refinada en clase 014):
 
 | Tipo | Nombre | Ejemplo |
 |------|--------|---------|
-| Espacio | Prefijo `S:` (de *Space*) | `S:Norte`, `S:Sur` |
-| Zona térmica | Nombre del lugar tal cual | `Norte`, `Sur` |
+| Espacio | Sufijo `_E` o `_S` (de *Space*) — convención moderna | `recamara_E`, `estancia_E` |
+| Espacio | Prefijo `S:` (de *Space*) — variante antigua | `S:Norte`, `S:Sur` |
+| Zona térmica | Nombre del lugar tal cual | `recamara`, `estancia`, `Norte` |
+
+> "Acuérdense que el espacio y las zonas térmicas no se pueden llamar de la misma manera. Pónganle `_E` o `_S` de Space." — clase 014
+
+Ambas convenciones funcionan. La de sufijo es más moderna porque resiste mejor el ordenado alfabético en listados.
 
 **Reglas de nomenclatura adicionales:**
 
@@ -65,3 +70,4 @@ Esto permite modelos con espacios de **alturas distintas** en el mismo piso (ej.
 
 - [[../classes/003-MiPrimeraSimulacion]] — primera vez que se distinguen explícitamente
 - [[../classes/006-DosZonasTermicasVentanasAleros]] — alturas distintas por Space, corte automático de superficies traslapadas
+- [[../classes/014-InfiltracionFloorspaceWindowLBNL]] — convención sufijo `_E`/`_S` para distinguir Space de ThermalZone; uso de Space Types como contenedores de cargas (infiltración)
