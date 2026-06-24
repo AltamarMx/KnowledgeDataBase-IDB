@@ -4,17 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "5dfb1242fa34923f",
+        "id": "e29dffa06b828773",
         "type": "tabs",
         "children": [
           {
-            "id": "60aa94182e6a8c7d",
+            "id": "1685d4af717abdd0",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "procedures/Leer-Archivo-ERR.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Leer-Archivo-ERR"
             }
           }
         ]
@@ -70,8 +74,7 @@
               "title": "Bookmarks"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "horizontal",
@@ -177,12 +180,12 @@
       "bases:Create new base": false
     }
   },
-  "active": "60aa94182e6a8c7d",
+  "active": "1685d4af717abdd0",
   "lastOpenFiles": [
-    "concepts/Radiacion-Onda-Larga.md",
-    "Untitled.base",
-    "Untitled 1.base",
     "index.md",
+    "Untitled.base",
+    "concepts/Radiacion-Onda-Larga.md",
+    "Untitled 1.base",
     "notebooks/001_EDA.md",
     "log.md",
     "tools/iertools.md",
@@ -206,7 +209,6 @@
     "concepts/Factor-de-Decremento.md",
     "concepts/Estado-Oscilatorio-Permanente.md",
     "concepts/Temperatura-Sol-Aire.md",
-    "classes/009-AireAcondicionadoSetPoints.md",
-    "procedures/Configurar-Aire-Acondicionado-Ideal.md"
+    "classes/009-AireAcondicionadoSetPoints.md"
   ]
 }
